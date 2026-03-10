@@ -22,14 +22,15 @@ export default function Coffee() {
       </section>
 
       {/* HISTORIA */}
-      <section id="historia" className="section">
-        <h2>Historia</h2>
-        <p>
-          Surreal Roots Coffee nació en El Salvador con la visión de conectar 
-          la riqueza del café salvadoreño con una experiencia cultural única. 
-          Cada taza cuenta una historia de origen, tradición y creatividad.
-        </p>
-      </section>
+<section id="historia" className="section">
+  <h2>Historia</h2>
+  <p>
+    Surreal Roots Coffee nació en El Salvador con la visión de conectar 
+    la riqueza del café salvadoreño con una experiencia cultural única. 
+    Cada taza cuenta una historia de origen, tradición y creatividad.
+  </p>
+  <Link href="/coffee/historia" className="btn" style={{marginTop: '1rem', display: 'inline-block'}}>Leer historia completa →</Link>
+</section>
 
       {/* MENU */}
       <section id="menu" className="section">
