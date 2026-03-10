@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase';
 
 export default function Coffee() {
   const [productos, setProductos] = useState([]);
+  const [carrito, setCarrito] = useState([]);
 
   useEffect(() => {
     async function cargarProductos() {
@@ -18,6 +19,50 @@ export default function Coffee() {
     cargarProductos()
   }, [])
 
+  function agregarAlCarrito(producto) {
+    const existe = carrito.find(item => item.id === producto.id)
+    if (existe) {
+      setCarrito(carrito.map(item =>
+        item.id === producto.id
+          ? { ...item, cantidad: item.cantidad + 1 }
+          : item
+      ))
+    } else {
+      setCarrito([...carrito, { ...producto, cantidad: 1 }])
+    }
+  }
+
+  function quitarDelCarrito(id) {
+  setCarrito(carrito.filter(item => item.id !== id))
+}
+
+function cambiarCantidad(id, delta) {
+  setCarrito(carrito
+    .map(item => item.id === id ? { ...item, cantidad: item.cantidad + delta } : item)
+    .filter(item => item.cantidad > 0)
+  )
+}
+
+async function confirmarPedido() {
+  const { error } = await supabase
+    .from('pedidos')
+    .insert([{
+      productos: carrito,
+      total: total,
+      estado: 'pendiente'
+    }])
+  
+  if (error) {
+    console.error('Error detalle:', JSON.stringify(error))
+    alert('Error al confirmar pedido')
+  } else {
+    alert('¡Pedido confirmado! 🎉')
+    setCarrito([])
+  }
+}
+
+  const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0)
+
   return (
     <main>
 
@@ -27,6 +72,7 @@ export default function Coffee() {
         <ul>
           <li><a href="#historia">Historia</a></li>
           <li><a href="#menu">Menú</a></li>
+          <li><a href="#carrito">🛒 {carrito.length}</a></li>
           <li><Link href="/">← Portfolio</Link></li>
         </ul>
       </nav>
@@ -59,9 +105,49 @@ export default function Coffee() {
               <p>{producto.descripcion}</p>
               <span className="tag">{producto.peso}</span>
               <span className="tag">${producto.precio}</span>
+              <button
+                className="btn"
+                style={{marginTop: '1rem', width: '100%'}}
+                onClick={() => agregarAlCarrito(producto)}
+              >
+                Agregar al carrito
+              </button>
             </div>
           ))}
         </div>
+      </section>
+
+      {/* CARRITO */}
+      <section id="carrito" className="section">
+        <h2>🛒 Carrito</h2>
+        {carrito.length === 0 ? (
+          <p>Tu carrito está vacío.</p>
+        ) : (
+          <>
+            {carrito.map(item => (
+              <div key={item.id} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 0', borderBottom: '1px solid #222'}}>
+                <div>
+                  <p style={{fontWeight: '700', color: '#f0f0f0'}}>{item.nombre}</p>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '0.8rem', marginTop: '0.3rem'}}>
+  <button onClick={() => cambiarCantidad(item.id, -1)} style={{background: '#222', border: '1px solid #444', color: '#f0f0f0', width: '28px', height: '28px', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem'}}>−</button>
+  <span style={{color: '#aaa'}}>{item.cantidad}</span>
+  <button onClick={() => cambiarCantidad(item.id, 1)} style={{background: '#222', border: '1px solid #444', color: '#f0f0f0', width: '28px', height: '28px', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem'}}>+</button>
+  <span style={{color: '#aaa', fontSize: '0.9rem'}}>× ${item.precio}</span>
+</div>
+                </div>
+                <button onClick={() => quitarDelCarrito(item.id)} style={{background: 'none', border: '1px solid #444', color: '#aaa', padding: '0.3rem 0.8rem', borderRadius: '4px', cursor: 'pointer'}}>
+                  Quitar
+                </button>
+              </div>
+
+              
+            ))}
+            <div style={{marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+              <p style={{fontSize: '1.2rem', fontWeight: '700', color: '#f0f0f0'}}>Total: ${total.toFixed(2)}</p>
+              <button className="btn" onClick={confirmarPedido}>Confirmar pedido</button>
+            </div>
+          </>
+        )}
       </section>
 
       {/* FOOTER */}
