@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Home() {
   return (
     <main>
@@ -39,6 +41,7 @@ export default function Home() {
             <span className="tag">Next.js</span>
             <span className="tag">Supabase</span>
             <span className="tag">Wompi</span>
+            <Link href="/coffee" className="btn" style={{marginTop: '1rem', display: 'inline-block'}}>Ver proyecto →</Link>
           </div>
           <div className="card">
             <h3>Experiencias de Café</h3>
