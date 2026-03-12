@@ -51,16 +51,30 @@ async function confirmarPedido() {
       total: total,
       estado: 'pendiente'
     }])
-  
+
   if (error) {
-    console.error('Error detalle:', JSON.stringify(error))
-    alert('Error al confirmar pedido')
+    console.error('Error:', JSON.stringify(error))
+    alert('Error al procesar pedido')
+    return
+  }
+
+  const referencia = `surreal-${Date.now()}`
+
+  const response = await fetch('/api/crear-pago', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ total: total, referencia })
+  })
+
+  const data = await response.json()
+
+  if (data.urlEnlacePago) {
+    window.location.href = data.urlEnlacePago
   } else {
-    alert('¡Pedido confirmado! 🎉')
-    setCarrito([])
+    console.error('Wompi error:', JSON.stringify(data))
+    alert('Error al crear enlace de pago')
   }
 }
-
   const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0)
 
   return (
