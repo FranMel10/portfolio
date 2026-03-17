@@ -94,11 +94,30 @@ async function confirmarPedido() {
          
 
       {/* HERO */}
-      <section className="hero">
-        <h1>Surreal Roots Coffee</h1>
-        <p>Café de especialidad con raíces salvadoreñas y alma surrealista ☕</p>
-        <a href="#menu" className="btn">Ver Menú</a>
-      </section>
+<section className="hero" style={{ position: 'relative', overflow: 'hidden' }}>
+  <video
+    autoPlay
+    muted
+    loop
+    playsInline
+    style={{
+      position: 'absolute',
+      top: 0, left: 0,
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover',
+      opacity: 0.35,
+      zIndex: 0
+    }}
+  >
+    <source src="/coffee-hero.mp4" type="video/mp4" />
+  </video>
+  <div style={{ position: 'relative', zIndex: 1 }}>
+    <h1>Surreal Roots Coffee</h1>
+    <p>Café de especialidad con raíces salvadoreñas y alma surrealista ☕</p>
+    <a href="#menu" className="btn">Ver Menú</a>
+  </div>
+</section>
 
       {/* HISTORIA */}
       <section id="historia" className="section">
@@ -167,10 +186,10 @@ async function confirmarPedido() {
       </section>
 
 {/* EXPERIENCIAS */}
-<section style={{ padding: '3rem 2rem', textAlign: 'center', background: '#f9f9f9' }}>
-  <h2 style={{ marginBottom: '1rem' }}>Más que un café</h2>
-  <p style={{ color: '#666', marginBottom: '2rem' }}>Vive experiencias únicas de café en El Salvador</p>
-  <Link href="/coffee/experiencias" className="btn">Ver experiencias →</Link>
+<section style={{ padding: '4rem 2rem', textAlign: 'center', background: 'var(--grain)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+  <h2 style={{ marginBottom: '1rem', fontFamily: 'Playfair Display, serif' }}>Más que un café</h2>
+  <p style={{ color: 'var(--gray)', marginBottom: '2rem' }}>Vive experiencias únicas de café en El Salvador</p>
+  <Link href="/coffee/experiencias" className="btn">Ver experiencias</Link>
 </section>
 
       {/* FOOTER */}
