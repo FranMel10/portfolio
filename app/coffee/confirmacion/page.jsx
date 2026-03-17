@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 export default function Confirmacion() {

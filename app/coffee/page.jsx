@@ -58,7 +58,7 @@ async function confirmarPedido() {
     return
   }
 
-  const referencia = `surreal-${Date.now()}`
+  const referencia = `surreal-${new Date().getTime()}`
 
   const response = await fetch('/api/crear-pago', {
     method: 'POST',
@@ -69,7 +69,7 @@ async function confirmarPedido() {
   const data = await response.json()
 
   if (data.urlEnlacePago) {
-    window.location.href = data.urlEnlacePago
+    window.location.assign(data.urlEnlacePago)
   } else {
     console.error('Wompi error:', JSON.stringify(data))
     alert('Error al crear enlace de pago')
@@ -86,10 +86,12 @@ async function confirmarPedido() {
         <ul>
           <li><a href="#historia">Historia</a></li>
           <li><a href="#menu">Menú</a></li>
+           <li><Link href="/coffee/experiencias">Experiencias</Link></li>
           <li><a href="#carrito">🛒 {carrito.length}</a></li>
           <li><Link href="/">← Portfolio</Link></li>
         </ul>
       </nav>
+         
 
       {/* HERO */}
       <section className="hero">
@@ -163,6 +165,13 @@ async function confirmarPedido() {
           </>
         )}
       </section>
+
+{/* EXPERIENCIAS */}
+<section style={{ padding: '3rem 2rem', textAlign: 'center', background: '#f9f9f9' }}>
+  <h2 style={{ marginBottom: '1rem' }}>Más que un café</h2>
+  <p style={{ color: '#666', marginBottom: '2rem' }}>Vive experiencias únicas de café en El Salvador</p>
+  <Link href="/coffee/experiencias" className="btn">Ver experiencias →</Link>
+</section>
 
       {/* FOOTER */}
       <footer className="footer">
