@@ -48,12 +48,14 @@ export default function Home() {
             <p>Directorio de cafeterías especiales en El Salvador con newsletter.</p>
             <span className="tag">Next.js</span>
             <span className="tag">Supabase</span>
+            <Link href="/coffee/experiencias" className="btn" style={{marginTop: '1rem', display: 'inline-block'}}>Ver proyecto →</Link>
           </div>
           <div className="card">
             <h3>Podcast Surreal</h3>
             <p>Página conectada a YouTube y Spotify con contexto editorial de cada episodio.</p>
             <span className="tag">YouTube API</span>
             <span className="tag">Next.js</span>
+            <Link href="/podcast" className="btn" style={{marginTop: '1rem', display: 'inline-block'}}>Ver proyecto →</Link>
           </div>
         </div>
       </section>
