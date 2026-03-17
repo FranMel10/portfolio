@@ -9,6 +9,7 @@ export default function Home() {
         <span className="logo">Francisco Armando Meléndez</span>
         <ul>
           <li><a href="#about">About</a></li>
+          <li><a href="#skills">Skills</a></li>
           <li><a href="#projects">Projects</a></li>
           <li><a href="#contact">Contact</a></li>
         </ul>
@@ -57,6 +58,42 @@ export default function Home() {
         </Link>
       </div>
     </div>
+  </div>
+</section>
+
+
+{/* SKILLS */}
+<section id="skills" className="section">
+  <h2>Skills</h2>
+  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
+    
+    <div>
+      <p style={{ fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '1.5rem' }}>Development</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+        {['JavaScript', 'HTML & CSS', 'Next.js', 'React', 'Supabase', 'PostgreSQL', 'Git & GitHub', 'Node.js', 'REST APIs'].map(skill => (
+          <span key={skill} className="tag">{skill}</span>
+        ))}
+      </div>
+    </div>
+
+    <div>
+      <p style={{ fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '1.5rem' }}>Technical Support</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+        {[ 'Salesforce', 'Zendesk', 'IT Troubleshooting', 'Technical Documentation', 'CRM Systems', 'Customer Support'].map(skill => (
+          <span key={skill} className="tag">{skill}</span>
+        ))}
+      </div>
+    </div>
+
+    <div>
+      <p style={{ fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '1.5rem' }}>Languages</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+        {['Español — Nativo', 'English — Professional'].map(skill => (
+          <span key={skill} className="tag">{skill}</span>
+        ))}
+      </div>
+    </div>
+
   </div>
 </section>
 
