@@ -6,7 +6,7 @@ export default function Home() {
 
       {/* NAVBAR */}
       <nav className="navbar">
-        <span className="logo">Armando Meléndez</span>
+        <span className="logo">Francisco Armando Meléndez</span>
         <ul>
           <li><a href="#about">About</a></li>
           <li><a href="#projects">Projects</a></li>
@@ -22,14 +22,43 @@ export default function Home() {
       </section>
 
       {/* ABOUT */}
-      <section id="about" className="section">
-        <h2>About</h2>
-        <p>
-          Soy Armando Meléndez, Ingeniero Biomédico y parte del equipo de soporte en Flipdish.
-          Estoy aprendiendo desarrollo web fullstack — JavaScript, HTML, CSS y Next.js —
-          con el objetivo de crecer como desarrollador y crear productos reales.
-        </p>
-      </section>
+<section id="about" className="section">
+  <h2>About</h2>
+  <div style={{ display: 'flex', gap: '4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+    <img
+      src="/avatar.png"
+      alt="Armando Meléndez"
+      style={{
+        width: '220px',
+        height: '220px',
+        objectFit: 'cover',
+        borderRadius: '4px',
+        border: '1px solid rgba(255,255,255,0.08)',
+        filter: 'grayscale(20%)'
+      }}
+    />
+    <div style={{ flex: 1, minWidth: '280px' }}>
+      <div className="divider"></div>
+      <p style={{ lineHeight: '1.9', color: '#888', marginBottom: '1.5rem' }}>
+        Biomedical Engineer & Support Specialist at Flipdish. 
+        Building fullstack web experiences with Next.js, Supabase and modern JavaScript. 
+        Based in El Salvador — passionate about local art, coffee culture, and creating 
+        real digital products.
+      </p>
+      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <a href="https://github.com/FranMel10" target="_blank" rel="noopener noreferrer" className="btn">
+          GitHub
+        </a>
+        <a href="https://www.linkedin.com/in/francisco-melendez-2459171b5/" target="_blank" rel="noopener noreferrer" className="btn">
+          LinkedIn
+        </a>
+        <Link href="/podcast" className="btn">
+          Surreal Podcast
+        </Link>
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* PROJECTS */}
       <section id="projects" className="section">
