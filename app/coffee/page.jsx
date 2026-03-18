@@ -4,15 +4,28 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 
+const systemPrompt = `Eres un experto barista y guía de café de Surreal Roots Coffee, una marca de café de especialidad salvadoreña. 
+Tu trabajo es recomendar productos de nuestro menú basándote en las preferencias del usuario.
+
+Nuestros productos son:
+1. Café Volcánico Clásico - $6 - Café de altura con notas suaves y cuerpo balanceado. Origen: Santa Ana, SV. Ideal para quienes prefieren un café suave y equilibrado.
+2. Café Pacamara Premium - $9 - Variedad especial Pacamara, con aroma floral, notas dulces a panela y caramelo, sutil acidez a frutas amarillas, cuerpo redondo. Origen: Apaneca, SV. Ideal para paladares exigentes.
+3. Café de Temporada - $9 - Disponibilidad limitada según la cosecha, siempre sorprendente. Origen: variable, SV. Ideal para quienes buscan algo especial y exclusivo.
+
+Responde siempre en español, de forma breve y amigable. Máximo 3 oraciones. Recomienda siempre uno de nuestros productos.`
+
 export default function Coffee() {
-  const [productos, setProductos] = useState([]);
-  const [carrito, setCarrito] = useState([]);
+  const [productos, setProductos] = useState([])
+  const [carrito, setCarrito] = useState([])
+  const [mensajesChat, setMensajesChat] = useState([
+    { role: 'assistant', content: 'Hola! Soy tu guía de café Surreal. ¿Qué tipo de café estás buscando hoy? ☕' }
+  ])
+  const [inputChat, setInputChat] = useState('')
+  const [cargandoChat, setCargandoChat] = useState(false)
 
   useEffect(() => {
     async function cargarProductos() {
-      const { data, error } = await supabase
-        .from('productos')
-        .select('*')
+      const { data, error } = await supabase.from('productos').select('*')
       if (error) console.error(error)
       else setProductos(data)
     }
@@ -23,9 +36,7 @@ export default function Coffee() {
     const existe = carrito.find(item => item.id === producto.id)
     if (existe) {
       setCarrito(carrito.map(item =>
-        item.id === producto.id
-          ? { ...item, cantidad: item.cantidad + 1 }
-          : item
+        item.id === producto.id ? { ...item, cantidad: item.cantidad + 1 } : item
       ))
     } else {
       setCarrito([...carrito, { ...producto, cantidad: 1 }])
@@ -33,225 +44,212 @@ export default function Coffee() {
   }
 
   function quitarDelCarrito(id) {
-  setCarrito(carrito.filter(item => item.id !== id))
-}
-
-function cambiarCantidad(id, delta) {
-  setCarrito(carrito
-    .map(item => item.id === id ? { ...item, cantidad: item.cantidad + delta } : item)
-    .filter(item => item.cantidad > 0)
-  )
-}
-
-async function confirmarPedido() {
-  const { error } = await supabase
-    .from('pedidos')
-    .insert([{
-      productos: carrito,
-      total: total,
-      estado: 'pendiente'
-    }])
-
-  if (error) {
-    console.error('Error:', JSON.stringify(error))
-    alert('Error al procesar pedido')
-    return
+    setCarrito(carrito.filter(item => item.id !== id))
   }
 
-  const referencia = `surreal-${new Date().getTime()}`
-
-  const response = await fetch('/api/crear-pago', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ total: total, referencia })
-  })
-
-  const data = await response.json()
-
-  if (data.urlEnlacePago) {
-    window.location.assign(data.urlEnlacePago)
-  } else {
-    console.error('Wompi error:', JSON.stringify(data))
-    alert('Error al crear enlace de pago')
+  function cambiarCantidad(id, delta) {
+    setCarrito(carrito
+      .map(item => item.id === id ? { ...item, cantidad: item.cantidad + delta } : item)
+      .filter(item => item.cantidad > 0)
+    )
   }
-}
+
+  async function confirmarPedido() {
+    const { error } = await supabase
+      .from('pedidos')
+      .insert([{ productos: carrito, total: total, estado: 'pendiente' }])
+
+    if (error) {
+      console.error('Error:', JSON.stringify(error))
+      alert('Error al procesar pedido')
+      return
+    }
+
+    const referencia = `surreal-${new Date().getTime()}`
+    const response = await fetch('/api/crear-pago', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ total: total, referencia })
+    })
+    const data = await response.json()
+    if (data.urlEnlacePago) {
+      window.location.assign(data.urlEnlacePago)
+    } else {
+      console.error('Wompi error:', JSON.stringify(data))
+      alert('Error al crear enlace de pago')
+    }
+  }
+
+  async function enviarMensaje() {
+    if (!inputChat.trim()) return
+    const nuevoMensaje = { role: 'user', content: inputChat }
+    const mensajesActualizados = [...mensajesChat, nuevoMensaje]
+    setMensajesChat(mensajesActualizados)
+    setInputChat('')
+    setCargandoChat(true)
+    try {
+      const response = await fetch('/api/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ messages: mensajesActualizados, systemPrompt })
+})
+      const data = await response.json()
+      console.log('Chat response:', JSON.stringify(data))
+      const respuesta = data.content[0].text
+      setMensajesChat([...mensajesActualizados, { role: 'assistant', content: respuesta }])
+    } catch (error) {
+      console.error(error)
+      setMensajesChat([...mensajesActualizados, { role: 'assistant', content: 'Lo siento, hubo un error. Intenta de nuevo.' }])
+    } finally {
+      setCargandoChat(false)
+    }
+  }
+
   const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0)
 
   return (
     <main>
-
-      {/* NAVBAR */}
       <nav className="navbar">
         <span className="logo">Surreal Roots Coffee</span>
         <ul>
           <li><a href="#historia">Historia</a></li>
           <li><a href="#menu">Menú</a></li>
-           <li><Link href="/coffee/experiencias">Experiencias</Link></li>
+          <li><Link href="/coffee/experiencias">Experiencias</Link></li>
           <li><a href="#carrito">🛒 {carrito.length}</a></li>
           <li><Link href="/">← Portfolio</Link></li>
         </ul>
       </nav>
-         
 
-      {/* HERO */}
-<section className="hero" style={{ position: 'relative', overflow: 'hidden' }}>
-  <video
-    autoPlay
-    muted
-    loop
-    playsInline
-    style={{
-      position: 'absolute',
-      top: 0, left: 0,
-      width: '100%',
-      height: '100%',
-      objectFit: 'cover',
-      opacity: 0.35,
-      zIndex: 0
-    }}
-  >
-    <source src="/coffee-hero.mp4" type="video/mp4" />
-  </video>
-  <div style={{ position: 'relative', zIndex: 1 }}>
-    <h1>Surreal Roots Coffee</h1>
-    <p>Café de especialidad con raíces salvadoreñas y alma surrealista ☕</p>
-    <a href="#menu" className="btn">Ver Menú</a>
-  </div>
-</section>
-
-      {/* HISTORIA */}
-      <section id="historia" className="section">
-        <h2>Historia</h2>
-        <p>
-          Surreal Roots Coffee nació en El Salvador con la visión de conectar 
-          la riqueza del café salvadoreño con una experiencia cultural única. 
-          Cada taza cuenta una historia de origen, tradición y creatividad.
-        </p>
-        <Link href="/coffee/historia" className="btn" style={{marginTop: '1rem', display: 'inline-block'}}>Leer historia completa →</Link>
+      <section className="hero" style={{ position: 'relative', overflow: 'hidden' }}>
+        <video autoPlay muted loop playsInline style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.35, zIndex: 0 }}>
+          <source src="/coffee-hero.mp4" type="video/mp4" />
+        </video>
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h1>Surreal Roots Coffee</h1>
+          <p>Café de especialidad con raíces salvadoreñas y alma surrealista</p>
+          <a href="#menu" className="btn">Ver Menú</a>
+        </div>
       </section>
 
-    {/* MENU */}
-<section id="menu" className="section">
-  <h2>Menú</h2>
-  <div className="cards">
-    {productos.map((producto) => {
-      const badges = {
-        'Café Volcánico Clásico': { label: 'Más vendido', color: '#c9a84c' },
-        'Café Pacamara Premium': { label: 'Premium', color: '#9b59b6' },
-        'Café de Temporada': { label: 'Edición limitada', color: '#e74c3c' }
-      }
-      const origenes = {
-        'Café Volcánico Clásico': 'Santa Ana, SV',
-        'Café Pacamara Premium': 'Apaneca, SV',
-        'Café de Temporada': 'Origen variable, SV'
-      }
-      const badge = badges[producto.nombre]
-      const origen = origenes[producto.nombre]
+      <section id="historia" className="section">
+        <h2>Historia</h2>
+        <p>Surreal Roots Coffee nació en El Salvador con la visión de conectar la riqueza del café salvadoreño con una experiencia cultural única. Cada taza cuenta una historia de origen, tradición y creatividad.</p>
+        <Link href="/coffee/historia" className="btn" style={{marginTop: '1rem', display: 'inline-block'}}>Leer historia completa</Link>
+      </section>
 
-      return (
-        <div className="card" key={producto.id} style={{ position: 'relative', overflow: 'hidden' }}>
-          {badge && (
-            <span style={{
-              position: 'absolute',
-              top: '1rem',
-              right: '1rem',
-              background: badge.color,
-              color: '#fff',
-              fontSize: '0.65rem',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              padding: '0.3rem 0.75rem',
-              borderRadius: '2px',
-              fontWeight: 'bold',
-              zIndex: 2
-            }}>
-              {badge.label}
-            </span>
-          )}
-          {producto.imagen && (
-            <div style={{ overflow: 'hidden', borderRadius: '4px', marginBottom: '1.5rem' }}>
-              <img
-                src={`/${producto.imagen}`}
-                alt={producto.nombre}
-                style={{
-                  width: '100%',
-                  height: '200px',
-                  objectFit: 'cover',
-                  borderRadius: '4px',
-                  transition: 'transform 0.4s ease',
-                }}
-                onMouseEnter={e => e.target.style.transform = 'scale(1.05)'}
-                onMouseLeave={e => e.target.style.transform = 'scale(1)'}
-              />
-            </div>
-          )}
-          <h3>{producto.nombre}</h3>
-          {origen && (
-            <p style={{ fontSize: '0.7rem', color: 'var(--accent)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-              📍 {origen}
-            </p>
-          )}
-          <p>{producto.descripcion}</p>
-          <span className="tag">{producto.peso}</span>
-          <span className="tag">${producto.precio}</span>
-          <button
-            className="btn"
-            style={{marginTop: '1rem', width: '100%'}}
-            onClick={() => agregarAlCarrito(producto)}
-          >
-            Agregar al carrito
-          </button>
+      <section id="menu" className="section">
+        <h2>Menú</h2>
+        <div className="cards">
+          {productos.map((producto) => {
+            const badges = {
+              'Café Volcánico Clásico': { label: 'Más vendido', color: '#c9a84c' },
+              'Café Pacamara Premium': { label: 'Premium', color: '#9b59b6' },
+              'Café de Temporada': { label: 'Edición limitada', color: '#e74c3c' }
+            }
+            const origenes = {
+              'Café Volcánico Clásico': 'Santa Ana, SV',
+              'Café Pacamara Premium': 'Apaneca, SV',
+              'Café de Temporada': 'Origen variable, SV'
+            }
+            const badge = badges[producto.nombre]
+            const origen = origenes[producto.nombre]
+            return (
+              <div className="card" key={producto.id} style={{ position: 'relative', overflow: 'hidden' }}>
+                {badge && (
+                  <span style={{ position: 'absolute', top: '1rem', right: '1rem', background: badge.color, color: '#fff', fontSize: '0.65rem', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '0.3rem 0.75rem', borderRadius: '2px', fontWeight: 'bold', zIndex: 2 }}>
+                    {badge.label}
+                  </span>
+                )}
+                {producto.imagen && (
+                  <div style={{ overflow: 'hidden', borderRadius: '4px', marginBottom: '1.5rem' }}>
+                    <img src={`/${producto.imagen}`} alt={producto.nombre} style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '4px', transition: 'transform 0.4s ease' }}
+                      onMouseEnter={e => e.target.style.transform = 'scale(1.05)'}
+                      onMouseLeave={e => e.target.style.transform = 'scale(1)'}
+                    />
+                  </div>
+                )}
+                <h3>{producto.nombre}</h3>
+                {origen && <p style={{ fontSize: '0.7rem', color: 'var(--accent)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>📍 {origen}</p>}
+                <p>{producto.descripcion}</p>
+                <span className="tag">{producto.peso}</span>
+                <span className="tag">${producto.precio}</span>
+                <button className="btn" style={{marginTop: '1rem', width: '100%'}} onClick={() => agregarAlCarrito(producto)}>
+                  Agregar al carrito
+                </button>
+              </div>
+            )
+          })}
         </div>
-      )
-    })}
-  </div>
-</section>
+      </section>
 
-      {/* CARRITO */}
       <section id="carrito" className="section">
-        <h2>🛒 Carrito</h2>
+        <h2>Carrito</h2>
         {carrito.length === 0 ? (
           <p>Tu carrito está vacío.</p>
         ) : (
           <>
             {carrito.map(item => (
-              <div key={item.id} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 0', borderBottom: '1px solid #222'}}>
+              <div key={item.id} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 0', borderBottom: '1px solid var(--border)'}}>
                 <div>
-                  <p style={{fontWeight: '700', color: '#f0f0f0'}}>{item.nombre}</p>
+                  <p style={{fontWeight: '700'}}>{item.nombre}</p>
                   <div style={{display: 'flex', alignItems: 'center', gap: '0.8rem', marginTop: '0.3rem'}}>
-  <button onClick={() => cambiarCantidad(item.id, -1)} style={{background: '#222', border: '1px solid #444', color: '#f0f0f0', width: '28px', height: '28px', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem'}}>−</button>
-  <span style={{color: '#aaa'}}>{item.cantidad}</span>
-  <button onClick={() => cambiarCantidad(item.id, 1)} style={{background: '#222', border: '1px solid #444', color: '#f0f0f0', width: '28px', height: '28px', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem'}}>+</button>
-  <span style={{color: '#aaa', fontSize: '0.9rem'}}>× ${item.precio}</span>
-</div>
+                    <button onClick={() => cambiarCantidad(item.id, -1)} style={{background: 'var(--grain)', border: '1px solid var(--border)', color: 'var(--white)', width: '28px', height: '28px', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem'}}>-</button>
+                    <span style={{color: 'var(--gray)'}}>{item.cantidad}</span>
+                    <button onClick={() => cambiarCantidad(item.id, 1)} style={{background: 'var(--grain)', border: '1px solid var(--border)', color: 'var(--white)', width: '28px', height: '28px', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem'}}>+</button>
+                    <span style={{color: 'var(--gray)', fontSize: '0.9rem'}}>x ${item.precio}</span>
+                  </div>
                 </div>
-                <button onClick={() => quitarDelCarrito(item.id)} style={{background: 'none', border: '1px solid #444', color: '#aaa', padding: '0.3rem 0.8rem', borderRadius: '4px', cursor: 'pointer'}}>
+                <button onClick={() => quitarDelCarrito(item.id)} style={{background: 'none', border: '1px solid var(--border)', color: 'var(--gray)', padding: '0.3rem 0.8rem', borderRadius: '4px', cursor: 'pointer'}}>
                   Quitar
                 </button>
               </div>
-
-              
             ))}
             <div style={{marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-              <p style={{fontSize: '1.2rem', fontWeight: '700', color: '#f0f0f0'}}>Total: ${total.toFixed(2)}</p>
+              <p style={{fontSize: '1.2rem', fontWeight: '700'}}>Total: ${total.toFixed(2)}</p>
               <button className="btn" onClick={confirmarPedido}>Confirmar pedido</button>
             </div>
           </>
         )}
       </section>
 
-{/* EXPERIENCIAS */}
-<section style={{ padding: '4rem 2rem', textAlign: 'center', background: 'var(--grain)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
-  <h2 style={{ marginBottom: '1rem', fontFamily: 'Playfair Display, serif' }}>Más que un café</h2>
-  <p style={{ color: 'var(--gray)', marginBottom: '2rem' }}>Vive experiencias únicas de café en El Salvador</p>
-  <Link href="/coffee/experiencias" className="btn">Ver experiencias</Link>
-</section>
+      <section className="section">
+        <p style={{ fontSize: '0.75rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '1rem' }}>IA Coffee Guide</p>
+        <h2 style={{ marginBottom: '2rem' }}>¿Qué café eres tú?</h2>
+        <div style={{ maxWidth: '600px', border: '1px solid var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
+          <div style={{ padding: '1.5rem', maxHeight: '350px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {mensajesChat.map((msg, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                <div style={{ background: msg.role === 'user' ? 'var(--accent)' : 'var(--grain)', color: msg.role === 'user' ? '#000' : 'var(--white)', padding: '0.75rem 1rem', borderRadius: '8px', maxWidth: '80%', fontSize: '0.85rem', lineHeight: '1.6', border: msg.role === 'assistant' ? '1px solid var(--border)' : 'none' }}>
+                  {msg.content}
+                </div>
+              </div>
+            ))}
+            {cargandoChat && (
+              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <div style={{ background: 'var(--grain)', border: '1px solid var(--border)', padding: '0.75rem 1rem', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--gray)' }}>
+                  Preparando tu recomendación...
+                </div>
+              </div>
+            )}
+          </div>
+          <div style={{ borderTop: '1px solid var(--border)', padding: '1rem', display: 'flex', gap: '0.75rem' }}>
+            <input type="text" placeholder="Ej: quiero un café suave y dulce..." value={inputChat} onChange={(e) => setInputChat(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && enviarMensaje()}
+              style={{ flex: 1, background: 'var(--grain)', border: '1px solid var(--border)', borderRadius: '4px', padding: '0.75rem 1rem', color: 'var(--white)', fontSize: '0.85rem', fontFamily: 'DM Mono, monospace' }}
+            />
+            <button onClick={enviarMensaje} className="btn" style={{ whiteSpace: 'nowrap' }}>Enviar</button>
+          </div>
+        </div>
+      </section>
 
-      {/* FOOTER */}
+      <section style={{ padding: '4rem 2rem', textAlign: 'center', background: 'var(--grain)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+        <h2 style={{ marginBottom: '1rem', fontFamily: 'Playfair Display, serif' }}>Más que un café</h2>
+        <p style={{ color: 'var(--gray)', marginBottom: '2rem' }}>Vive experiencias únicas de café en El Salvador</p>
+        <Link href="/coffee/experiencias" className="btn">Ver experiencias</Link>
+      </section>
+
       <footer className="footer">
-        <p>© 2025 Surreal Roots Coffee — El Salvador</p>
+        <p>2025 Surreal Roots Coffee - El Salvador</p>
       </footer>
-
     </main>
-  );
+  )
 }
