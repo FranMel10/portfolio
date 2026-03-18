@@ -130,27 +130,82 @@ async function confirmarPedido() {
         <Link href="/coffee/historia" className="btn" style={{marginTop: '1rem', display: 'inline-block'}}>Leer historia completa →</Link>
       </section>
 
-      {/* MENU */}
-      <section id="menu" className="section">
-        <h2>Menú</h2>
-        <div className="cards">
-          {productos.map((producto) => (
-            <div className="card" key={producto.id}>
-              <h3>{producto.nombre}</h3>
-              <p>{producto.descripcion}</p>
-              <span className="tag">{producto.peso}</span>
-              <span className="tag">${producto.precio}</span>
-              <button
-                className="btn"
-                style={{marginTop: '1rem', width: '100%'}}
-                onClick={() => agregarAlCarrito(producto)}
-              >
-                Agregar al carrito
-              </button>
+    {/* MENU */}
+<section id="menu" className="section">
+  <h2>Menú</h2>
+  <div className="cards">
+    {productos.map((producto) => {
+      const badges = {
+        'Café Volcánico Clásico': { label: 'Más vendido', color: '#c9a84c' },
+        'Café Pacamara Premium': { label: 'Premium', color: '#9b59b6' },
+        'Café de Temporada': { label: 'Edición limitada', color: '#e74c3c' }
+      }
+      const origenes = {
+        'Café Volcánico Clásico': 'Santa Ana, SV',
+        'Café Pacamara Premium': 'Apaneca, SV',
+        'Café de Temporada': 'Origen variable, SV'
+      }
+      const badge = badges[producto.nombre]
+      const origen = origenes[producto.nombre]
+
+      return (
+        <div className="card" key={producto.id} style={{ position: 'relative', overflow: 'hidden' }}>
+          {badge && (
+            <span style={{
+              position: 'absolute',
+              top: '1rem',
+              right: '1rem',
+              background: badge.color,
+              color: '#fff',
+              fontSize: '0.65rem',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              padding: '0.3rem 0.75rem',
+              borderRadius: '2px',
+              fontWeight: 'bold',
+              zIndex: 2
+            }}>
+              {badge.label}
+            </span>
+          )}
+          {producto.imagen && (
+            <div style={{ overflow: 'hidden', borderRadius: '4px', marginBottom: '1.5rem' }}>
+              <img
+                src={`/${producto.imagen}`}
+                alt={producto.nombre}
+                style={{
+                  width: '100%',
+                  height: '200px',
+                  objectFit: 'cover',
+                  borderRadius: '4px',
+                  transition: 'transform 0.4s ease',
+                }}
+                onMouseEnter={e => e.target.style.transform = 'scale(1.05)'}
+                onMouseLeave={e => e.target.style.transform = 'scale(1)'}
+              />
             </div>
-          ))}
+          )}
+          <h3>{producto.nombre}</h3>
+          {origen && (
+            <p style={{ fontSize: '0.7rem', color: 'var(--accent)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+              📍 {origen}
+            </p>
+          )}
+          <p>{producto.descripcion}</p>
+          <span className="tag">{producto.peso}</span>
+          <span className="tag">${producto.precio}</span>
+          <button
+            className="btn"
+            style={{marginTop: '1rem', width: '100%'}}
+            onClick={() => agregarAlCarrito(producto)}
+          >
+            Agregar al carrito
+          </button>
         </div>
-      </section>
+      )
+    })}
+  </div>
+</section>
 
       {/* CARRITO */}
       <section id="carrito" className="section">
