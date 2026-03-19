@@ -206,7 +206,17 @@ export default function Coffee() {
             ))}
             <div style={{marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
               <p style={{fontSize: '1.2rem', fontWeight: '700'}}>Total: ${total.toFixed(2)}</p>
-              <button className="btn" onClick={confirmarPedido}>Confirmar pedido</button>
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+  <button className="btn" onClick={() => {
+    localStorage.setItem('carrito', JSON.stringify(carrito))
+    window.location.href = '/checkout'
+  }}>
+    Checkout con envío
+  </button>
+  <button className="btn" onClick={confirmarPedido} style={{ opacity: 0.6 }}>
+    Pago directo (Wompi)
+  </button>
+</div>
             </div>
           </>
         )}
