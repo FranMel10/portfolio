@@ -4,15 +4,16 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 
-const systemPrompt = `Eres un experto barista y guía de café de Surreal Roots Coffee, una marca de café de especialidad salvadoreña. 
-Tu trabajo es recomendar productos de nuestro menú basándote en las preferencias del usuario.
+const systemPrompt = `Eres un experto barista y guía de café de Surreal Roots Coffee...
 
 Nuestros productos son:
-1. Café Volcánico Clásico - $6 - Café de altura con notas suaves y cuerpo balanceado. Origen: Santa Ana, SV. Ideal para quienes prefieren un café suave y equilibrado.
-2. Café Pacamara Premium - $9 - Variedad especial Pacamara, con aroma floral, notas dulces a panela y caramelo, sutil acidez a frutas amarillas, cuerpo redondo. Origen: Apaneca, SV. Ideal para paladares exigentes.
-3. Café de Temporada - $9 - Disponibilidad limitada según la cosecha, siempre sorprendente. Origen: variable, SV. Ideal para quienes buscan algo especial y exclusivo.
-
-Responde siempre en español, de forma breve y amigable. Máximo 3 oraciones. Recomienda siempre uno de nuestros productos.`
+1. Café Volcánico Clásico - $6 ...
+2. Café Pacamara Premium - $9 ...
+3. Café de Temporada - $9 ...
+4. Café Pacamara Clásico Caliente - $0.50 - Servido caliente por taza. Ideal para quien quiere probar el Pacamara sin compromiso.
+5. Cold Brew - $1.00 - Extracción en frío 12 horas. Suave, concentrado, sin acidez. Perfecto para clima caliente.
+6. Prensa Francesa - $8.00 - Preparación artesanal por taza, cuerpo completo y sabor limpio. Experiencia de café premium.
+7. Cold Brew con Leche o Naranja - $1.50 - Cold brew servido con leche o jugo de naranja fresco a elección del cliente. Ideal para quien quiere algo más cremoso o cítrico.`
 
 export default function Coffee() {
   const [productos, setProductos] = useState([])
@@ -141,16 +142,24 @@ export default function Coffee() {
         <h2>Menú</h2>
         <div className="cards">
           {productos.map((producto) => {
-            const badges = {
-              'Café Volcánico Clásico': { label: 'Más vendido', color: '#c9a84c' },
-              'Café Pacamara Premium': { label: 'Premium', color: '#9b59b6' },
-              'Café de Temporada': { label: 'Edición limitada', color: '#e74c3c' }
-            }
-            const origenes = {
-              'Café Volcánico Clásico': 'Santa Ana, SV',
-              'Café Pacamara Premium': 'Apaneca, SV',
-              'Café de Temporada': 'Origen variable, SV'
-            }
+           const badges = {
+  'Café Volcánico Clásico': { label: 'Más vendido', color: '#c9a84c' },
+  'Café Pacamara Premium': { label: 'Premium', color: '#9b59b6' },
+  'Café de Temporada': { label: 'Edición limitada', color: '#e74c3c' },
+  'Café Pacamara Clásico Caliente': { label: 'Feria', color: '#2e7d32' },
+  'Cold Brew': { label: 'Frío', color: '#1565c0' },
+  'Prensa Francesa': { label: 'Artesanal', color: '#6d4c41' },
+  'Cold Brew con Leche o Naranja': { label: 'Especial', color: '#e65100' },
+}
+const origenes = {
+  'Café Volcánico Clásico': 'Santa Ana, SV',
+  'Café Pacamara Premium': 'Apaneca, SV',
+  'Café de Temporada': 'Origen variable, SV',
+  'Café Pacamara Clásico Caliente': 'Feria · Por taza',
+  'Cold Brew': 'Feria · Por vaso',
+  'Prensa Francesa': 'Feria · Por prensa',
+  'Cold Brew con Leche o Naranja': 'Feria · Por vaso',
+}
             const badge = badges[producto.nombre]
             const origen = origenes[producto.nombre]
             return (
@@ -211,6 +220,12 @@ export default function Coffee() {
     localStorage.setItem('carrito', JSON.stringify(carrito))
     window.location.href = '/checkout'
   }}>
+    Pagar en efectivo
+  </button>
+  <button className="btn" onClick={() => {
+    localStorage.setItem('carrito', JSON.stringify(carrito))
+    window.location.href = '/checkout'
+  }} style={{ opacity: 0.6 }}>
     Checkout con envío
   </button>
   <button className="btn" onClick={confirmarPedido} style={{ opacity: 0.6 }}>

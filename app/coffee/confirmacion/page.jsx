@@ -12,20 +12,26 @@ function ConfirmacionContent() {
     <section className="hero">
       {estado === 'exitoso' ? (
         <>
-          <h1>Pago exitoso!</h1>
+          <h1>¡Pago exitoso!</h1>
           <p>Tu pedido ha sido confirmado. Nos pondremos en contacto contigo pronto.</p>
-          <Link href="/coffee" className="btn" style={{marginTop: '1rem'}}>Seguir comprando</Link>
+          <Link href="/coffee" className="btn" style={{ marginTop: '1rem' }}>Seguir comprando</Link>
         </>
       ) : estado === 'fallido' ? (
         <>
           <h1>Pago fallido</h1>
           <p>Hubo un problema con tu pago. Por favor intenta de nuevo.</p>
-          <Link href="/coffee" className="btn" style={{marginTop: '1rem'}}>Volver al carrito</Link>
+          <Link href="/coffee" className="btn" style={{ marginTop: '1rem' }}>Volver al carrito</Link>
+        </>
+      ) : estado === 'cash' ? (
+        <>
+          <h1>¡Pedido completado!</h1>
+          <p>Tu pedido ha sido registrado. Por favor realiza el pago en efectivo al momento de recibir.</p>
+          <Link href="/coffee" className="btn" style={{ marginTop: '1rem' }}>Volver al menú</Link>
         </>
       ) : (
         <>
           <h1>Procesando pago...</h1>
-          <p>Espera un momento mientras confirmamos tu transaccion.</p>
+          <p>Espera un momento mientras confirmamos tu transacción.</p>
         </>
       )}
     </section>
@@ -38,7 +44,7 @@ export default function Confirmacion() {
       <nav className="navbar">
         <span className="logo">Surreal Roots Coffee</span>
         <ul>
-          <li><Link href="/coffee">Volver al cafe</Link></li>
+          <li><Link href="/coffee">Volver al café</Link></li>
         </ul>
       </nav>
       <Suspense fallback={<section className="hero"><h1>Cargando...</h1></section>}>
