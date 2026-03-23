@@ -37,13 +37,11 @@ export default function Coffee() {
     cargarProductos()
   }, [])
 
-  // Bloquear scroll cuando drawer está abierto
   useEffect(() => {
     document.body.style.overflow = drawerAbierto ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [drawerAbierto])
 
-  // Cerrar con Escape
   useEffect(() => {
     const handleKey = (e) => { if (e.key === 'Escape') setDrawerAbierto(false) }
     window.addEventListener('keydown', handleKey)
@@ -71,30 +69,6 @@ export default function Coffee() {
       .map(item => item.id === id ? { ...item, cantidad: item.cantidad + delta } : item)
       .filter(item => item.cantidad > 0)
     )
-  }
-
-  async function confirmarPedido() {
-    const { error } = await supabase
-      .from('pedidos')
-      .insert([{ productos: carrito, total: total, estado: 'pendiente' }])
-    if (error) {
-      console.error('Error:', JSON.stringify(error))
-      alert('Error al procesar pedido')
-      return
-    }
-    const referencia = `surreal-${new Date().getTime()}`
-    const response = await fetch('/api/crear-pago', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ total: total, referencia })
-    })
-    const data = await response.json()
-    if (data.urlEnlacePago) {
-      window.location.assign(data.urlEnlacePago)
-    } else {
-      console.error('Wompi error:', JSON.stringify(data))
-      alert('Error al crear enlace de pago')
-    }
   }
 
   async function enviarMensaje() {
@@ -168,7 +142,6 @@ export default function Coffee() {
         transform: drawerAbierto ? 'translateX(0)' : 'translateX(100%)',
         transition: 'transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
       }}>
-        {/* Drawer header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border)' }}>
           <span style={{ fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--gray)' }}>
             Tu selección {totalItems > 0 && `(${totalItems})`}
@@ -178,7 +151,6 @@ export default function Coffee() {
           </button>
         </div>
 
-        {/* Drawer items */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '1rem 1.5rem' }}>
           {carrito.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', gap: '0.75rem', color: 'var(--gray)' }}>
@@ -188,7 +160,6 @@ export default function Coffee() {
           ) : (
             carrito.map((item) => (
               <div key={item.id} style={{ display: 'flex', gap: '0.75rem', padding: '1rem 0', borderBottom: '1px solid var(--border)' }}>
-                {/* Imagen */}
                 <div style={{ width: '48px', height: '48px', borderRadius: '4px', background: 'var(--grain)', border: '1px solid var(--border)', overflow: 'hidden', flexShrink: 0 }}>
                   {item.imagen ? (
                     <img src={`/${item.imagen}`} alt={item.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -196,40 +167,37 @@ export default function Coffee() {
                     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>☕</div>
                   )}
                 </div>
-                {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: '0.8rem', color: 'var(--white)', marginBottom: '0.25rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.nombre}</p>
                   <p style={{ fontSize: '0.75rem', color: 'var(--accent)', fontFamily: 'DM Mono, monospace' }}>${(item.precio * item.cantidad).toFixed(2)}</p>
-                  {/* Controles */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
                     <button onClick={() => cambiarCantidad(item.id, -1)} style={{ width: '22px', height: '22px', background: 'var(--grain)', border: '1px solid var(--border)', color: 'var(--white)', borderRadius: '3px', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
                     <span style={{ fontSize: '0.8rem', color: 'var(--white)', minWidth: '16px', textAlign: 'center', fontFamily: 'DM Mono, monospace' }}>{item.cantidad}</span>
                     <button onClick={() => cambiarCantidad(item.id, 1)} style={{ width: '22px', height: '22px', background: 'var(--grain)', border: '1px solid var(--border)', color: 'var(--white)', borderRadius: '3px', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
                   </div>
                 </div>
-                {/* Quitar */}
                 <button onClick={() => quitarDelCarrito(item.id)} style={{ background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', fontSize: '1rem', alignSelf: 'flex-start', padding: '2px' }}>×</button>
               </div>
             ))
           )}
         </div>
 
-        {/* Drawer footer */}
         {carrito.length > 0 && (
           <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1rem' }}>
               <span style={{ fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--gray)' }}>Total</span>
               <span style={{ fontSize: '1.3rem', color: 'var(--white)', fontFamily: 'DM Mono, monospace' }}>${total.toFixed(2)}</span>
             </div>
+            
             <button
               className="btn"
               onClick={() => {
                 localStorage.setItem('carrito', JSON.stringify(carrito))
                 window.location.href = '/checkout'
               }}
-              style={{ width: '100%', marginBottom: '0.5rem' }}
+              style={{ width: '100%', marginBottom: '0.5rem', opacity: 0.6 }}
             >
-              Pagar en efectivo
+              Collection (Recogida)
             </button>
             <button
               className="btn"
@@ -237,16 +205,9 @@ export default function Coffee() {
                 localStorage.setItem('carrito', JSON.stringify(carrito))
                 window.location.href = '/checkout'
               }}
-              style={{ width: '100%', marginBottom: '0.5rem', opacity: 0.5 }}
+              style={{ width: '100%', opacity: 0.6 }}
             >
-              Checkout con envío
-            </button>
-            <button
-              className="btn"
-              onClick={confirmarPedido}
-              style={{ width: '100%', opacity: 0.5 }}
-            >
-              Pago directo (Wompi)
+              Delivery
             </button>
           </div>
         )}
@@ -356,11 +317,11 @@ export default function Coffee() {
       </section>
 
       {/* CTA EXPERIENCIAS */}
-<section style={{ padding: '4rem 2rem', textAlign: 'center', background: 'var(--grain)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
-  <h2 style={{ marginBottom: '1rem', fontFamily: 'Playfair Display, serif' }}>Mas que un cafe</h2>
-  <p style={{ color: 'var(--gray)', marginBottom: '2rem' }}>Vive experiencias unicas de cafe en El Salvador</p>
-  <Link href="/coffee/experiencias" className="btn">Ver experiencias</Link>
-</section>
+      <section style={{ padding: '4rem 2rem', textAlign: 'center', background: 'var(--grain)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+        <h2 style={{ marginBottom: '1rem', fontFamily: 'Playfair Display, serif' }}>Mas que un cafe</h2>
+        <p style={{ color: 'var(--gray)', marginBottom: '2rem' }}>Vive experiencias unicas de cafe en El Salvador</p>
+        <Link href="/coffee/experiencias" className="btn">Ver experiencias</Link>
+      </section>
 
       <footer className="footer">
         <p>2025 Surreal Roots Coffee - El Salvador</p>
