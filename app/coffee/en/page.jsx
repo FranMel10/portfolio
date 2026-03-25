@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { supabase } from '../../lib/supabase'
+import { supabase } from '../../../lib/supabase'
 
-export default function Coffee() {
+export default function CoffeeEN() {
   const [productos, setProductos] = useState([])
   const [carrito, setCarrito] = useState([])
   const [drawerAbierto, setDrawerAbierto] = useState(false)
@@ -88,10 +88,10 @@ export default function Coffee() {
         </button>
 
         <ul className={menuAbierto ? 'open' : ''}>
-          <li><a href="#top" onClick={() => setMenuAbierto(false)}>Inicio</a></li>
-          <li><a href="#historia" onClick={() => setMenuAbierto(false)}>Historia</a></li>
+          <li><a href="#top" onClick={() => setMenuAbierto(false)}>Home</a></li>
+          <li><a href="#historia" onClick={() => setMenuAbierto(false)}>Story</a></li>
           <li><a href="#menu" onClick={() => setMenuAbierto(false)}>Menu</a></li>
-          <li><Link href="/coffee/experiencias" onClick={() => setMenuAbierto(false)}>Experiencias</Link></li>
+          <li><Link href="/coffee/experiencias" onClick={() => setMenuAbierto(false)}>Experiences</Link></li>
           <li>
             <button
               onClick={() => { setDrawerAbierto(true); setMenuAbierto(false) }}
@@ -109,10 +109,10 @@ export default function Coffee() {
               onClick={() => { setDarkMode(!darkMode); setMenuAbierto(false) }}
               style={{ background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', fontSize: '0.75rem', fontFamily: 'inherit', padding: 0, letterSpacing: '0.15em', textTransform: 'uppercase' }}
             >
-              {darkMode ? '☀ Claro' : '● Oscuro'}
+              {darkMode ? '☀ Light' : '● Dark'}
             </button>
           </li>
-          <li><Link href="/coffee/en" onClick={() => setMenuAbierto(false)}>EN</Link></li>
+          <li><Link href="/coffee" onClick={() => setMenuAbierto(false)}>ES</Link></li>
           <li><Link href="/" onClick={() => setMenuAbierto(false)}>Portfolio</Link></li>
         </ul>
 
@@ -146,7 +146,7 @@ export default function Coffee() {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border)' }}>
           <span style={{ fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--gray)' }}>
-            Tu seleccion {totalItems > 0 && `(${totalItems})`}
+            Your selection {totalItems > 0 && `(${totalItems})`}
           </span>
           <button onClick={() => setDrawerAbierto(false)} style={{ background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', fontSize: '1.25rem', lineHeight: 1, padding: '4px' }}>
             ×
@@ -157,12 +157,12 @@ export default function Coffee() {
           {carrito.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', gap: '0.75rem', color: 'var(--gray)' }}>
               <span style={{ fontSize: '2rem' }}>○</span>
-              <span style={{ fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Sin productos</span>
+              <span style={{ fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>No products</span>
               <button
                 onClick={() => setDrawerAbierto(false)}
                 style={{ background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', fontFamily: 'DM Mono, monospace', marginTop: '0.5rem' }}
               >
-                ← Volver al menu
+                ← Back to menu
               </button>
             </div>
           ) : (
@@ -204,13 +204,13 @@ export default function Coffee() {
               }}
               style={{ width: '100%', marginBottom: '0.5rem' }}
             >
-              Proceder al pago
+              Proceed to checkout
             </button>
             <button
               onClick={() => setDrawerAbierto(false)}
               style={{ width: '100%', background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', padding: '0.75rem', fontFamily: 'DM Mono, monospace' }}
             >
-              ← Seguir comprando
+              ← Continue shopping
             </button>
           </div>
         )}
@@ -223,40 +223,40 @@ export default function Coffee() {
         </video>
         <div style={{ position: 'relative', zIndex: 1 }}>
           <h1>Surreal Roots Coffee</h1>
-          <p>Café de especialidad con raíces salvadoreñas y alma surrealista</p>
-          <a href="#menu" className="btn">Ver Menu</a>
+          <p>Specialty coffee with Salvadoran roots and a surrealist soul</p>
+          <a href="#menu" className="btn">View Menu</a>
         </div>
       </section>
 
-      {/* HISTORIA */}
+      {/* STORY */}
       <section id="historia" className="section">
-        <h2>Historia</h2>
-        <p>Surreal Roots Coffee nació en El Salvador con la visión de conectar la riqueza del café salvadoreño con una experiencia cultural única. Cada taza cuenta una historia de origen, tradición y creatividad.</p>
-        <Link href="/coffee/historia" className="btn" style={{ marginTop: '1rem', display: 'inline-block' }}>Leer historia completa</Link>
+        <h2>Our Story</h2>
+        <p>Surreal Roots Coffee was born in El Salvador with the vision of connecting the richness of Salvadoran coffee with a unique cultural experience. Each cup tells a story of origin, tradition and creativity.</p>
+        <Link href="/coffee/historia" className="btn" style={{ marginTop: '1rem', display: 'inline-block' }}>Read full story</Link>
       </section>
 
-      {/* MENÚ */}
+      {/* MENU */}
       <section id="menu" className="section">
         <h2>Menu</h2>
         <div className="cards">
           {productos.map((producto) => {
             const badges = {
-              'Café Volcánico Clásico': { label: 'Mas vendido', color: '#c9a84c' },
+              'Café Volcánico Clásico': { label: 'Best seller', color: '#c9a84c' },
               'Café Pacamara Premium': { label: 'Premium', color: '#9b59b6' },
-              'Café de Temporada': { label: 'Edicion limitada', color: '#e74c3c' },
-              'Café Pacamara Clásico Caliente': { label: 'Feria', color: '#2e7d32' },
-              'Cold Brew': { label: 'Frio', color: '#1565c0' },
-              'Prensa Francesa': { label: 'Artesanal', color: '#6d4c41' },
-              'Cold Brew con Leche o Naranja': { label: 'Especial', color: '#e65100' },
+              'Café de Temporada': { label: 'Limited edition', color: '#e74c3c' },
+              'Café Pacamara Clásico Caliente': { label: 'Market', color: '#2e7d32' },
+              'Cold Brew': { label: 'Cold', color: '#1565c0' },
+              'Prensa Francesa': { label: 'Artisan', color: '#6d4c41' },
+              'Cold Brew con Leche o Naranja': { label: 'Special', color: '#e65100' },
             }
             const origenes = {
               'Café Volcánico Clásico': 'Santa Ana, SV',
               'Café Pacamara Premium': 'Apaneca, SV',
-              'Café de Temporada': 'Origen variable, SV',
-              'Café Pacamara Clásico Caliente': 'Feria · Por taza',
-              'Cold Brew': 'Feria · Por vaso',
-              'Prensa Francesa': 'Feria · Por prensa',
-              'Cold Brew con Leche o Naranja': 'Feria · Por vaso',
+              'Café de Temporada': 'Variable origin, SV',
+              'Café Pacamara Clásico Caliente': 'Market · Per cup',
+              'Cold Brew': 'Market · Per glass',
+              'Prensa Francesa': 'Market · Per press',
+              'Cold Brew con Leche o Naranja': 'Market · Per glass',
             }
             const badge = badges[producto.nombre]
             const origen = origenes[producto.nombre]
@@ -280,31 +280,29 @@ export default function Coffee() {
                 <p>{producto.descripcion}</p>
                 <span className="tag">{producto.peso}</span>
                 <span className="tag">${producto.precio}</span>
-                <button className="btn" style={{ marginTop: '1rem', width: '100%' }} onClick={() => agregarAlCarrito(producto)}>
-                  Agregar al Carrito{producto.disponible === false ? (
-  <button
-    disabled
-    style={{ marginTop: '1rem', width: '100%', background: 'none', border: '1px solid var(--border)', color: 'var(--gray)', padding: '0.75rem 2rem', fontSize: '0.75rem', letterSpacing: '0.15em', textTransform: 'uppercase', borderRadius: '2px', cursor: 'not-allowed', fontFamily: 'DM Mono, monospace' }}
-  >
-    Solo en feria
-  </button>
-) : (
-  <button className="btn" style={{ marginTop: '1rem', width: '100%' }} onClick={() => agregarAlCarrito(producto)}>
-    Agregar al carrito
-  </button>
-)}
-                </button>
+                {producto.disponible === false ? (
+                  <button
+                    disabled
+                    style={{ marginTop: '1rem', width: '100%', background: 'none', border: '1px solid var(--border)', color: 'var(--gray)', padding: '0.75rem 2rem', fontSize: '0.75rem', letterSpacing: '0.15em', textTransform: 'uppercase', borderRadius: '2px', cursor: 'not-allowed', fontFamily: 'DM Mono, monospace' }}
+                  >
+                    Market only
+                  </button>
+                ) : (
+                  <button className="btn" style={{ marginTop: '1rem', width: '100%' }} onClick={() => agregarAlCarrito(producto)}>
+                    Add to cart
+                  </button>
+                )}
               </div>
             )
           })}
         </div>
       </section>
 
-      {/* CTA EXPERIENCIAS */}
+      {/* CTA EXPERIENCES */}
       <section style={{ padding: '4rem 2rem', textAlign: 'center', background: 'var(--grain)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
-        <h2 style={{ marginBottom: '1rem', fontFamily: 'Playfair Display, serif' }}>Mas que un cafe</h2>
-        <p style={{ color: 'var(--gray)', marginBottom: '2rem' }}>Vive experiencias unicas de cafe en El Salvador</p>
-        <Link href="/coffee/experiencias" className="btn">Ver experiencias</Link>
+        <h2 style={{ marginBottom: '1rem', fontFamily: 'Playfair Display, serif' }}>More than coffee</h2>
+        <p style={{ color: 'var(--gray)', marginBottom: '2rem' }}>Live unique coffee experiences in El Salvador</p>
+        <Link href="/coffee/experiencias" className="btn">View experiences</Link>
       </section>
 
       {/* FOOTER */}
