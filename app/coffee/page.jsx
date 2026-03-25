@@ -137,7 +137,7 @@ export default function Coffee() {
 
       {/* DRAWER */}
       <div style={{
-        position: 'fixed', top: 0, right: 0, height: '100%', width: '360px',
+        position: 'fixed', top: 0, right: 0, height: '100%', width: 'min(360px, 100vw)',
         background: 'var(--grain)', borderLeft: '1px solid var(--border)',
         zIndex: 50, display: 'flex', flexDirection: 'column',
         transform: drawerAbierto ? 'translateX(0)' : 'translateX(100%)',
