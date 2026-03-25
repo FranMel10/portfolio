@@ -1,3 +1,5 @@
+import { FaLinkedin, FaGithub, FaReact, FaNodeJs } from 'react-icons/fa';
+import { SiNextdotjs, SiSupabase, SiPostgresql } from 'react-icons/si';
 import Link from 'next/link';
 
 export default function Home() {
@@ -16,11 +18,38 @@ export default function Home() {
       </nav>
 
       {/* HERO */}
-      <section className="hero">
-        <h1>Full Stack Developer</h1>
-        <p>Biomedical Engineer building digital experiences from El Salvador 🇸🇻</p>
-        <a href="#projects" className="btn">Ver proyectos</a>
-      </section>
+      <section 
+  className="hero" 
+  style={{
+    backgroundImage: "url('/portfoliohero.jpg')",
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    position: 'relative'
+  }}
+>
+  <div style={{
+    background: 'rgba(0,0,0,0.6)',
+    padding: '4rem 2rem',
+    textAlign: 'center'
+  }}>
+    <h1>Francisco A. Meléndez</h1>
+    <p> Product Builder | Full-Stack Developer | Founder of Surreal Roots Coffee</p>
+
+    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '1.5rem' }}>
+      <a href="#projects" className="btn">View Projects</a>
+
+      <a 
+        href="https://www.linkedin.com/in/francisco-a-melendez-2459171b5/" 
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn"
+        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+      >
+        <FaLinkedin /> LinkedIn
+      </a>
+    </div>
+  </div>
+</section>
 
       {/* ABOUT */}
 <section id="about" className="section">
@@ -50,9 +79,9 @@ export default function Home() {
         <a href="https://github.com/FranMel10" target="_blank" rel="noopener noreferrer" className="btn">
           GitHub
         </a>
-        <a href="https://www.linkedin.com/in/francisco-melendez-2459171b5/" target="_blank" rel="noopener noreferrer" className="btn">
-          LinkedIn
-        </a>
+        <a href="https://www.linkedin.com/in/francisco-a-melendez-2459171b5/" target="_blank" rel="noopener noreferrer" className="btn">
+  LinkedIn
+</a>
         <Link href="/podcast" className="btn">
           Surreal Podcast
         </Link>
