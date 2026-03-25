@@ -157,6 +157,12 @@ export default function Coffee() {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', gap: '0.75rem', color: 'var(--gray)' }}>
               <span style={{ fontSize: '2rem' }}>○</span>
               <span style={{ fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Sin productos</span>
+              <button
+                onClick={() => setDrawerAbierto(false)}
+                style={{ background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', fontFamily: 'DM Mono, monospace', marginTop: '0.5rem' }}
+              >
+                ← Volver al menu
+              </button>
             </div>
           ) : (
             carrito.map((item) => (
@@ -195,9 +201,15 @@ export default function Coffee() {
                 localStorage.setItem('carrito', JSON.stringify(carrito))
                 window.location.href = '/checkout'
               }}
-              style={{ width: '100%' }}
+              style={{ width: '100%', marginBottom: '0.5rem' }}
             >
               Proceder al pago
+            </button>
+            <button
+              onClick={() => setDrawerAbierto(false)}
+              style={{ width: '100%', background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', padding: '0.75rem', fontFamily: 'DM Mono, monospace' }}
+            >
+              ← Seguir comprando
             </button>
           </div>
         )}
