@@ -21,7 +21,11 @@ export default function Coffee() {
   }, [])
 
   useEffect(() => {
-    document.body.style.overflow = drawerAbierto || menuAbierto ? 'hidden' : ''
+    if (drawerAbierto || menuAbierto) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
     return () => { document.body.style.overflow = '' }
   }, [drawerAbierto, menuAbierto])
 
@@ -71,60 +75,133 @@ export default function Coffee() {
   const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0)
   const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0)
 
-  const navLinks = [
-    { href: '#top', label: 'Inicio', anchor: true },
-    { href: '#historia', label: 'Historia', anchor: true },
-    { href: '#menu', label: 'Menu', anchor: true },
-    { href: '/coffee/experiencias', label: 'Experiencias', anchor: false },
-  ]
-
   return (
     <main id="top">
-  {/* NAVBAR */}
-<nav className="navbar">
-  <button
-    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-  >
-    <span className="logo">Surreal Roots Coffee</span>
-  </button>
 
-  <ul className={menuAbierto ? 'open' : ''}>
-    <li><a href="#top" onClick={() => setMenuAbierto(false)}>Inicio</a></li>
-    <li><a href="#historia" onClick={() => setMenuAbierto(false)}>Historia</a></li>
-    <li><a href="#menu" onClick={() => setMenuAbierto(false)}>Menu</a></li>
-    <li><Link href="/coffee/experiencias" onClick={() => setMenuAbierto(false)}>Experiencias</Link></li>
-    <li>
-      <button
-        onClick={() => { setDrawerAbierto(true); setMenuAbierto(false) }}
-        style={{ background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', fontSize: '0.75rem', fontFamily: 'inherit', padding: 0, letterSpacing: '0.15em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-      >
-        Carrito {totalItems > 0 && (
-          <span style={{ background: 'var(--accent)', color: '#000', borderRadius: '50%', width: '18px', height: '18px', fontSize: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-            {totalItems}
+      {/* NAVBAR */}
+      <nav className="navbar">
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+        >
+          <span className="logo">Surreal Roots Coffee</span>
+        </button>
+
+        <ul className={menuAbierto ? 'open' : ''}>
+          <li><a href="#top" onClick={() => setMenuAbierto(false)}>Inicio</a></li>
+          <li><a href="#historia" onClick={() => setMenuAbierto(false)}>Historia</a></li>
+          <li><a href="#menu" onClick={() => setMenuAbierto(false)}>Menu</a></li>
+          <li><Link href="/coffee/experiencias" onClick={() => setMenuAbierto(false)}>Experiencias</Link></li>
+          <li>
+            <button
+              onClick={() => { setDrawerAbierto(true); setMenuAbierto(false) }}
+              style={{ background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', fontSize: '0.75rem', fontFamily: 'inherit', padding: 0, letterSpacing: '0.15em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              🛒 {totalItems > 0 && (
+                <span style={{ background: 'var(--accent)', color: '#000', borderRadius: '50%', width: '18px', height: '18px', fontSize: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                  {totalItems}
+                </span>
+              )}
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => { setDarkMode(!darkMode); setMenuAbierto(false) }}
+              style={{ background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', fontSize: '0.75rem', fontFamily: 'inherit', padding: 0, letterSpacing: '0.15em', textTransform: 'uppercase' }}
+            >
+              {darkMode ? '☀ Claro' : '● Oscuro'}
+            </button>
+          </li>
+          <li><Link href="/" onClick={() => setMenuAbierto(false)}>Portfolio</Link></li>
+        </ul>
+
+        <button
+          className={`menu-toggle ${menuAbierto ? 'open' : ''}`}
+          onClick={() => setMenuAbierto(!menuAbierto)}
+          aria-label="Menu"
+        >
+          <span /><span /><span />
+        </button>
+      </nav>
+
+      {/* OVERLAY */}
+      <div
+        onClick={() => { setDrawerAbierto(false); setMenuAbierto(false) }}
+        style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 40,
+          opacity: drawerAbierto ? 1 : 0,
+          pointerEvents: drawerAbierto ? 'all' : 'none',
+          transition: 'opacity 0.3s ease',
+        }}
+      />
+
+      {/* DRAWER */}
+      <div style={{
+        position: 'fixed', top: 0, right: 0, height: '100%', width: '360px',
+        background: 'var(--grain)', borderLeft: '1px solid var(--border)',
+        zIndex: 50, display: 'flex', flexDirection: 'column',
+        transform: drawerAbierto ? 'translateX(0)' : 'translateX(100%)',
+        transition: 'transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border)' }}>
+          <span style={{ fontSize: '0.7rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--gray)' }}>
+            Tu seleccion {totalItems > 0 && `(${totalItems})`}
           </span>
-        )}
-      </button>
-    </li>
-    <li>
-      <button
-        onClick={() => { setDarkMode(!darkMode); setMenuAbierto(false) }}
-        style={{ background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', fontSize: '0.75rem', fontFamily: 'inherit', padding: 0, letterSpacing: '0.15em', textTransform: 'uppercase' }}
-      >
-        {darkMode ? '☀ Claro' : '● Oscuro'}
-      </button>
-    </li>
-    <li><Link href="/" onClick={() => setMenuAbierto(false)}>Portfolio</Link></li>
-  </ul>
+          <button onClick={() => setDrawerAbierto(false)} style={{ background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', fontSize: '1.25rem', lineHeight: 1, padding: '4px' }}>
+            ×
+          </button>
+        </div>
 
-  <button
-    className={`menu-toggle ${menuAbierto ? 'open' : ''}`}
-    onClick={() => setMenuAbierto(!menuAbierto)}
-    aria-label="Menu"
-  >
-    <span /><span /><span />
-  </button>
-</nav>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '1rem 1.5rem' }}>
+          {carrito.length === 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', gap: '0.75rem', color: 'var(--gray)' }}>
+              <span style={{ fontSize: '2rem' }}>○</span>
+              <span style={{ fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Sin productos</span>
+            </div>
+          ) : (
+            carrito.map((item) => (
+              <div key={item.id} style={{ display: 'flex', gap: '0.75rem', padding: '1rem 0', borderBottom: '1px solid var(--border)' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '4px', background: 'var(--black)', border: '1px solid var(--border)', overflow: 'hidden', flexShrink: 0 }}>
+                  {item.imagen ? (
+                    <img src={`/${item.imagen}`} alt={item.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>☕</div>
+                  )}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--white)', marginBottom: '0.25rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.nombre}</p>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--accent)', fontFamily: 'DM Mono, monospace' }}>${(item.precio * item.cantidad).toFixed(2)}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    <button onClick={() => cambiarCantidad(item.id, -1)} style={{ width: '22px', height: '22px', background: 'var(--black)', border: '1px solid var(--border)', color: 'var(--white)', borderRadius: '3px', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--white)', minWidth: '16px', textAlign: 'center', fontFamily: 'DM Mono, monospace' }}>{item.cantidad}</span>
+                    <button onClick={() => cambiarCantidad(item.id, 1)} style={{ width: '22px', height: '22px', background: 'var(--black)', border: '1px solid var(--border)', color: 'var(--white)', borderRadius: '3px', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                  </div>
+                </div>
+                <button onClick={() => quitarDelCarrito(item.id)} style={{ background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', fontSize: '1rem', alignSelf: 'flex-start', padding: '2px' }}>×</button>
+              </div>
+            ))
+          )}
+        </div>
+
+        {carrito.length > 0 && (
+          <div style={{ padding: '1.25rem 1.5rem', borderTop: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1rem' }}>
+              <span style={{ fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--gray)' }}>Total</span>
+              <span style={{ fontSize: '1.3rem', color: 'var(--white)', fontFamily: 'DM Mono, monospace' }}>${total.toFixed(2)}</span>
+            </div>
+            <button
+              className="btn"
+              onClick={() => {
+                localStorage.setItem('carrito', JSON.stringify(carrito))
+                window.location.href = '/checkout'
+              }}
+              style={{ width: '100%' }}
+            >
+              Proceder al pago
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* HERO */}
       <section className="hero" style={{ position: 'relative', overflow: 'hidden' }}>
@@ -209,7 +286,8 @@ export default function Coffee() {
       {/* FOOTER */}
       <footer className="footer">
         <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginBottom: '1rem' }}>
-          <a href="https://www.instagram.com/surrealrootscoffee" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gray)', textDecoration: 'none', fontSize: '0.75rem', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'color 0.3s' }}
+          <a href="https://www.instagram.com/surrealrootscoffee" target="_blank" rel="noopener noreferrer"
+            style={{ color: 'var(--gray)', textDecoration: 'none', fontSize: '0.75rem', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'color 0.3s' }}
             onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--gray)'}
           >
@@ -218,7 +296,8 @@ export default function Coffee() {
             </svg>
             Instagram
           </a>
-          <a href="https://www.youtube.com/@surrealrootscoffee" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gray)', textDecoration: 'none', fontSize: '0.75rem', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'color 0.3s' }}
+          <a href="https://www.youtube.com/watch?v=nTftGsYmzoU" target="_blank" rel="noopener noreferrer"
+            style={{ color: 'var(--gray)', textDecoration: 'none', fontSize: '0.75rem', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'color 0.3s' }}
             onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--gray)'}
           >
@@ -230,6 +309,7 @@ export default function Coffee() {
         </div>
         <p>2025 Surreal Roots Coffee - El Salvador</p>
       </footer>
+
     </main>
   )
 }
