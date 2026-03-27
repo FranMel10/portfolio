@@ -92,7 +92,31 @@ export default function Coffee() {
           <li><a href="#historia" onClick={() => setMenuAbierto(false)}>Historia</a></li>
           <li><a href="#menu" onClick={() => setMenuAbierto(false)}>Menu</a></li>
           <li><Link href="/coffee/experiencias" onClick={() => setMenuAbierto(false)}>Experiencias</Link></li>
-          <li>
+    <li>
+  <a
+    href="https://wa.me/50372017598"
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{
+      background: '#25D366',
+      color: '#fff',
+      padding: '0.4rem 0.8rem',
+      borderRadius: '20px',
+      fontSize: '0.7rem',
+      letterSpacing: '0.1em',
+      textTransform: 'uppercase',
+      textDecoration: 'none',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.3rem',
+      fontWeight: 'bold'
+    }}
+  >
+    💬 WhatsApp
+  </a>
+</li>
+<li>
+            
             <button
               onClick={() => { setDrawerAbierto(true); setMenuAbierto(false) }}
               style={{ background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', fontSize: '0.75rem', fontFamily: 'inherit', padding: 0, letterSpacing: '0.15em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
@@ -225,6 +249,7 @@ export default function Coffee() {
           <h1>Surreal Roots Coffee</h1>
           <p>Café de especialidad con raíces salvadoreñas y alma surrealista</p>
           <a href="#menu" className="btn">Ver Menu</a>
+          
         </div>
       </section>
 
@@ -333,7 +358,32 @@ export default function Coffee() {
         </div>
         <p>2025 Surreal Roots Coffee - El Salvador</p>
       </footer>
+    
 
+    <a
+  href="https://wa.me/50372017598?text=Hola%20quiero%20informacion%20sobre%20el%20cafe"
+  target="_blank"
+  rel="noopener noreferrer"
+  style={{
+    position: 'fixed',
+    bottom: '20px',
+    right: '20px',
+    background: '#25D366',
+    color: '#fff',
+    width: '55px',
+    height: '55px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1.5rem',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+    zIndex: 100,
+    textDecoration: 'none'
+  }}
+>
+  💬
+</a>
     </main>
   )
 }
