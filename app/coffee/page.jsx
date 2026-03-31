@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import AfiliadosBtn from './afiliadosBtn'
 
 export default function Coffee() {
   const [productos, setProductos] = useState([])
@@ -241,17 +242,21 @@ export default function Coffee() {
       </div>
 
       {/* HERO */}
-      <section className="hero" style={{ position: 'relative', overflow: 'hidden' }}>
-        <video autoPlay muted loop playsInline style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.35, zIndex: 0 }}>
-          <source src="/coffee-hero.mp4" type="video/mp4" />
-        </video>
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <h1>Surreal Roots Coffee</h1>
-          <p>Café de especialidad con raíces salvadoreñas y alma surrealista</p>
-          <a href="#menu" className="btn">Ver Menu</a>
-          
-        </div>
-      </section>
+<section className="hero" style={{ position: 'relative', overflow: 'visible' }}>
+  <video autoPlay muted loop playsInline style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.35, zIndex: 0 }}>
+    <source src="/coffee-hero.mp4" type="video/mp4" />
+  </video>
+  <div style={{ position: 'relative', zIndex: 1 }}>
+    <h1>Surreal Roots Coffee</h1>
+    <p>Café de especialidad con raíces salvadoreñas y alma surrealista</p>
+    <Link href="/coffee/suscripcion" className="btn">Suscríbete y ahorra</Link>
+    <a href="#menu" className="btn">Comprar café</a>
+    <a href="https://wa.me/50372017598" className="btn" target="_blank" rel="noopener noreferrer">
+      Comprar por WhatsApp
+    </a>
+  </div>
+  <AfiliadosBtn />
+</section>
 
       {/* HISTORIA */}
       <section id="historia" className="section">
