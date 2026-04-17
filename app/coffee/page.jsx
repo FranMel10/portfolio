@@ -11,12 +11,27 @@ export default function Coffee() {
   const [drawerAbierto, setDrawerAbierto] = useState(false)
   const [menuAbierto, setMenuAbierto] = useState(false)
   const [darkMode, setDarkMode] = useState(true)
+  const [usandoFallback, setUsandoFallback] = useState(false)
 
   useEffect(() => {
     async function cargarProductos() {
-      const { data, error } = await supabase.from('productos').select('*')
-      if (error) console.error(error)
-      else setProductos(data)
+      try {
+        const timeout = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout')), 5000)
+        )
+        const consulta = supabase.from('productos').select('*')
+        const { data, error } = await Promise.race([consulta, timeout])
+        if (error || !data || data.length === 0) {
+          throw new Error('Supabase no disponible')
+        }
+        setProductos(data)
+      } catch (err) {
+        console.warn('Supabase falló, usando datos locales:', err)
+        const res = await fetch('/productos-fallback.json')
+        const fallback = await res.json()
+        setProductos(fallback)
+        setUsandoFallback(true)
+      }
     }
     cargarProductos()
   }, [])
@@ -76,6 +91,26 @@ export default function Coffee() {
   const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0)
   const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0)
 
+  const badges = {
+    'Café Volcánico Clásico': { label: 'Mas vendido', color: '#c9a84c' },
+    'Café Pacamara Premium': { label: 'Premium', color: '#9b59b6' },
+    'Café de Temporada': { label: 'Edicion limitada', color: '#e74c3c' },
+    'Café Pacamara Clásico Caliente': { label: 'Feria', color: '#2e7d32' },
+    'Cold Brew': { label: 'Frio', color: '#1565c0' },
+    'Prensa Francesa': { label: 'Artesanal', color: '#6d4c41' },
+    'Cold Brew con Leche o Naranja': { label: 'Especial', color: '#e65100' },
+  }
+
+  const origenes = {
+    'Café Volcánico Clásico': 'Santa Ana, SV',
+    'Café Pacamara Premium': 'Apaneca, SV',
+    'Café de Temporada': 'Origen variable, SV',
+    'Café Pacamara Clásico Caliente': 'Feria · Por taza',
+    'Cold Brew': 'Feria · Por vaso',
+    'Prensa Francesa': 'Feria · Por prensa',
+    'Cold Brew con Leche o Naranja': 'Feria · Por vaso',
+  }
+
   return (
     <main id="top">
 
@@ -93,7 +128,7 @@ export default function Coffee() {
           <li><a href="#historia" onClick={() => setMenuAbierto(false)}>Historia</a></li>
           <li><a href="#menu" onClick={() => setMenuAbierto(false)}>Menu</a></li>
           <li><Link href="/coffee/experiencias" onClick={() => setMenuAbierto(false)}>Experiencias</Link></li>
-    <li>
+<li>
   <a
     href="https://wa.me/50372017598"
     target="_blank"
@@ -116,8 +151,7 @@ export default function Coffee() {
     💬 WhatsApp
   </a>
 </li>
-<li>
-            
+          <li>
             <button
               onClick={() => { setDrawerAbierto(true); setMenuAbierto(false) }}
               style={{ background: 'none', border: 'none', color: 'var(--gray)', cursor: 'pointer', fontSize: '0.75rem', fontFamily: 'inherit', padding: 0, letterSpacing: '0.15em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
@@ -242,21 +276,21 @@ export default function Coffee() {
       </div>
 
       {/* HERO */}
-<section className="hero" style={{ position: 'relative', overflow: 'visible' }}>
-  <video autoPlay muted loop playsInline style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.35, zIndex: 0 }}>
-    <source src="/coffee-hero.mp4" type="video/mp4" />
-  </video>
-  <div style={{ position: 'relative', zIndex: 1 }}>
-    <h1>Surreal Roots Coffee</h1>
-    <p>Café de especialidad con raíces salvadoreñas y alma surrealista</p>
-    <Link href="/coffee/suscripcion" className="btn">Suscríbete y ahorra</Link>
-    <a href="#menu" className="btn">Comprar café</a>
-    <a href="https://wa.me/50372017598" className="btn" target="_blank" rel="noopener noreferrer">
-      Comprar por WhatsApp
-    </a>
-  </div>
-  <AfiliadosBtn />
-</section>
+      <section className="hero" style={{ position: 'relative', overflow: 'visible' }}>
+        <video autoPlay muted loop playsInline style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.35, zIndex: 0 }}>
+          <source src="/coffee-hero.mp4" type="video/mp4" />
+        </video>
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h1>Surreal Roots Coffee</h1>
+          <p>Café de especialidad con raíces salvadoreñas y alma surrealista</p>
+          <Link href="/coffee/suscripcion" className="btn">Suscríbete y ahorra</Link>
+          <a href="#menu" className="btn">Comprar café</a>
+          <a href="https://wa.me/50372017598" className="btn" target="_blank" rel="noopener noreferrer">
+            Comprar por WhatsApp
+          </a>
+        </div>
+        <AfiliadosBtn />
+      </section>
 
       {/* HISTORIA */}
       <section id="historia" className="section">
@@ -268,26 +302,20 @@ export default function Coffee() {
       {/* MENÚ */}
       <section id="menu" className="section">
         <h2>Menu</h2>
+        {usandoFallback && (
+          <p style={{
+            fontSize: '0.7rem',
+            letterSpacing: '0.1em',
+            color: 'var(--accent)',
+            textTransform: 'uppercase',
+            marginBottom: '1.5rem',
+            textAlign: 'center'
+          }}>
+            ⚠ Mostrando catálogo local — los precios pueden variar. Escríbenos por WhatsApp para confirmar disponibilidad.
+          </p>
+        )}
         <div className="cards">
           {productos.map((producto) => {
-            const badges = {
-              'Café Volcánico Clásico': { label: 'Mas vendido', color: '#c9a84c' },
-              'Café Pacamara Premium': { label: 'Premium', color: '#9b59b6' },
-              'Café de Temporada': { label: 'Edicion limitada', color: '#e74c3c' },
-              'Café Pacamara Clásico Caliente': { label: 'Feria', color: '#2e7d32' },
-              'Cold Brew': { label: 'Frio', color: '#1565c0' },
-              'Prensa Francesa': { label: 'Artesanal', color: '#6d4c41' },
-              'Cold Brew con Leche o Naranja': { label: 'Especial', color: '#e65100' },
-            }
-            const origenes = {
-              'Café Volcánico Clásico': 'Santa Ana, SV',
-              'Café Pacamara Premium': 'Apaneca, SV',
-              'Café de Temporada': 'Origen variable, SV',
-              'Café Pacamara Clásico Caliente': 'Feria · Por taza',
-              'Cold Brew': 'Feria · Por vaso',
-              'Prensa Francesa': 'Feria · Por prensa',
-              'Cold Brew con Leche o Naranja': 'Feria · Por vaso',
-            }
             const badge = badges[producto.nombre]
             const origen = origenes[producto.nombre]
             return (
@@ -299,31 +327,40 @@ export default function Coffee() {
                 )}
                 {producto.imagen && (
                   <div style={{ overflow: 'hidden', borderRadius: '4px', marginBottom: '1.5rem' }}>
-                    <img src={`/${producto.imagen}`} alt={producto.nombre} style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '4px', transition: 'transform 0.4s ease' }}
+                    <img
+                      src={`/${producto.imagen}`}
+                      alt={producto.nombre}
+                      style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '4px', transition: 'transform 0.4s ease' }}
                       onMouseEnter={e => e.target.style.transform = 'scale(1.05)'}
                       onMouseLeave={e => e.target.style.transform = 'scale(1)'}
                     />
                   </div>
                 )}
                 <h3>{producto.nombre}</h3>
-                {origen && <p style={{ fontSize: '0.7rem', color: 'var(--accent)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>📍 {origen}</p>}
+                {origen && (
+                  <p style={{ fontSize: '0.7rem', color: 'var(--accent)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                    📍 {origen}
+                  </p>
+                )}
                 <p>{producto.descripcion}</p>
                 <span className="tag">{producto.peso}</span>
                 <span className="tag">${producto.precio}</span>
-                <button className="btn" style={{ marginTop: '1rem', width: '100%' }} onClick={() => agregarAlCarrito(producto)}>
-                  Agregar al Carrito{producto.disponible === false ? (
-  <button
-    disabled
-    style={{ marginTop: '1rem', width: '100%', background: 'none', border: '1px solid var(--border)', color: 'var(--gray)', padding: '0.75rem 2rem', fontSize: '0.75rem', letterSpacing: '0.15em', textTransform: 'uppercase', borderRadius: '2px', cursor: 'not-allowed', fontFamily: 'DM Mono, monospace' }}
-  >
-    Solo en feria
-  </button>
-) : (
-  <button className="btn" style={{ marginTop: '1rem', width: '100%' }} onClick={() => agregarAlCarrito(producto)}>
-    Agregar al carrito
-  </button>
-)}
-                </button>
+                {producto.disponible === false ? (
+                  <button
+                    disabled
+                    style={{ marginTop: '1rem', width: '100%', background: 'none', border: '1px solid var(--border)', color: 'var(--gray)', padding: '0.75rem 2rem', fontSize: '0.75rem', letterSpacing: '0.15em', textTransform: 'uppercase', borderRadius: '2px', cursor: 'not-allowed', fontFamily: 'DM Mono, monospace' }}
+                  >
+                    Solo en feria
+                  </button>
+                ) : (
+                  <button
+                    className="btn"
+                    style={{ marginTop: '1rem', width: '100%' }}
+                    onClick={() => agregarAlCarrito(producto)}
+                  >
+                    Agregar al carrito
+                  </button>
+                )}
               </div>
             )
           })}
@@ -340,7 +377,10 @@ export default function Coffee() {
       {/* FOOTER */}
       <footer className="footer">
         <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginBottom: '1rem' }}>
-          <a href="https://www.instagram.com/surrealrootscoffee" target="_blank" rel="noopener noreferrer"
+          <a
+            href="https://www.instagram.com/surrealrootscoffee"
+            target="_blank"
+            rel="noopener noreferrer"
             style={{ color: 'var(--gray)', textDecoration: 'none', fontSize: '0.75rem', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'color 0.3s' }}
             onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--gray)'}
@@ -350,7 +390,11 @@ export default function Coffee() {
             </svg>
             Instagram
           </a>
-          <a href="https://www.youtube.com/watch?v=nTftGsYmzoU" target="_blank" rel="noopener noreferrer"
+          
+          <a
+            href="https://www.youtube.com/watch?v=nTftGsYmzoU"
+            target="_blank"
+            rel="noopener noreferrer"
             style={{ color: 'var(--gray)', textDecoration: 'none', fontSize: '0.75rem', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'color 0.3s' }}
             onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--gray)'}
@@ -363,32 +407,32 @@ export default function Coffee() {
         </div>
         <p>2025 Surreal Roots Coffee - El Salvador</p>
       </footer>
-    
 
-    <a
-  href="https://wa.me/50372017598?text=Hola%20quiero%20informacion%20sobre%20el%20cafe"
-  target="_blank"
-  rel="noopener noreferrer"
-  style={{
-    position: 'fixed',
-    bottom: '20px',
-    right: '20px',
-    background: '#25D366',
-    color: '#fff',
-    width: '55px',
-    height: '55px',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '1.5rem',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-    zIndex: 100,
-    textDecoration: 'none'
-  }}
->
-  💬
-</a>
+      
+      <a
+        href="https://wa.me/50372017598?text=Hola%20quiero%20informacion%20sobre%20el%20cafe"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          background: '#25D366',
+          color: '#fff',
+          width: '55px',
+          height: '55px',
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '1.5rem',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          zIndex: 100,
+          textDecoration: 'none'
+        }}
+      >
+        💬
+      </a>
     </main>
   )
 }

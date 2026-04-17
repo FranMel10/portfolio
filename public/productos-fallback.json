@@ -1,0 +1,65 @@
+[
+  {
+    "id": 1,
+    "nombre": "Café Volcánico Clásico",
+    "descripcion": "Café de altura con notas a chocolate oscuro y frutos rojos, cultivado en las faldas del volcán Santa Ana.",
+    "precio": 12.00,
+    "peso": "250g",
+    "imagen": "cafe-volcanico.jpg",
+    "disponible": true
+  },
+  {
+    "id": 2,
+    "nombre": "Café Pacamara Premium",
+    "descripcion": "Varietal Pacamara de Apaneca, perfil suave con notas florales y cítricos.",
+    "precio": 16.00,
+    "peso": "250g",
+    "imagen": "cafe-pacamara.jpg",
+    "disponible": true
+  },
+  {
+    "id": 3,
+    "nombre": "Café de Temporada",
+    "descripcion": "Selección especial de origen variable según la cosecha del año.",
+    "precio": 14.00,
+    "peso": "250g",
+    "imagen": "cafe-temporada.jpg",
+    "disponible": true
+  },
+  {
+    "id": 4,
+    "nombre": "Café Pacamara Clásico Caliente",
+    "descripcion": "Taza preparada en feria, método caliente.",
+    "precio": 3.00,
+    "peso": "Por taza",
+    "imagen": null,
+    "disponible": true
+  },
+  {
+    "id": 5,
+    "nombre": "Cold Brew",
+    "descripcion": "Café frío de extracción lenta, concentrado y suave.",
+    "precio": 4.00,
+    "peso": "Por vaso",
+    "imagen": null,
+    "disponible": true
+  },
+  {
+    "id": 6,
+    "nombre": "Prensa Francesa",
+    "descripcion": "Preparación artesanal en prensa francesa, cuerpo completo.",
+    "precio": 5.00,
+    "peso": "Por prensa",
+    "imagen": null,
+    "disponible": true
+  },
+  {
+    "id": 7,
+    "nombre": "Cold Brew con Leche o Naranja",
+    "descripcion": "Cold brew combinado con leche o jugo de naranja natural.",
+    "precio": 4.50,
+    "peso": "Por vaso",
+    "imagen": null,
+    "disponible": true
+  }
+]
