@@ -200,7 +200,7 @@ export default function CoffeeEN() {
               className="btn"
               onClick={() => {
                 localStorage.setItem('carrito', JSON.stringify(carrito))
-                window.location.href = '/checkout'
+                window.location.href = '/coffee/checkout'
               }}
               style={{ width: '100%', marginBottom: '0.5rem' }}
             >
