@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 
 export default function CheckoutPage() {
   const [carrito, setCarrito] = useState([])
+  const [nombre, setNombre] = useState('')
+  const [telefono, setTelefono] = useState('')
   const [metodoPago, setMetodoPago] = useState('cash')
   const [tipoEntrega, setTipoEntrega] = useState('pickup')
   const [direccion, setDireccion] = useState('')
@@ -21,10 +23,32 @@ export default function CheckoutPage() {
   const costoDelivery = tipoEntrega === 'delivery' ? 3.00 : 0
   const total = subtotal + costoDelivery
 
-  async function handlePagar() {
+  function validar() {
+    if (!nombre.trim()) { alert('Por favor ingresa tu nombre'); return false }
+    if (!telefono.trim() || telefono.replace(/\D/g, '').length < 8) {
+      alert('Por favor ingresa un teléfono válido (mínimo 8 dígitos)')
+      return false
+    }
     if (tipoEntrega === 'delivery' && !direccion.trim()) {
       alert('Por favor ingresa tu dirección de entrega')
-      return
+      return false
+    }
+    return true
+  }
+
+  async function handlePagar() {
+    if (!validar()) return
+
+    const ordenData = {
+      nombre: nombre.trim(),
+      telefono: telefono.trim(),
+      direccion: direccion.trim(),
+      tipo_entrega: tipoEntrega,
+      metodo_pago: metodoPago,
+      items: carrito,
+      subtotal,
+      costo_delivery: costoDelivery,
+      total,
     }
 
     if (metodoPago === 'wompi') {
@@ -34,10 +58,11 @@ export default function CheckoutPage() {
         const response = await fetch('/api/crear-pago', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ total, referencia }),
+          body: JSON.stringify({ ...ordenData, referencia }),
         })
         const data = await response.json()
         if (data.urlEnlacePago) {
+          localStorage.removeItem('carrito')
           window.location.assign(data.urlEnlacePago)
         } else {
           alert('Error al crear enlace de pago')
@@ -48,15 +73,26 @@ export default function CheckoutPage() {
         setProcesando(false)
       }
     } else {
+      setProcesando(true)
+      try {
+        await fetch('/api/crear-orden', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(ordenData),
+        })
+      } catch (e) {
+        console.error('Error guardando orden:', e)
+      }
+
       const lineas = carrito.map(item => `• ${item.cantidad}x ${item.nombre} - $${(item.precio * item.cantidad).toFixed(2)}`)
-      const infoEntrega = tipoEntrega === 'delivery' ? `\n📍 Dirección: ${direccion}\n🚚 Delivery: $3.00` : '\n🏠 Pickup en tienda'
-      const mensaje = `🛒 *Nuevo pedido Surreal Roots Coffee*\n\n${lineas.join('\n')}${infoEntrega}\n\n*Total: $${total.toFixed(2)}*\n\nMétodo de pago: Efectivo`
+      const infoEntrega = tipoEntrega === 'delivery'
+        ? `\n📍 Dirección: ${direccion}\n🚚 Delivery: $3.00`
+        : '\n🏠 Pickup en tienda'
+      const mensaje = `🛒 *Nuevo pedido Surreal Roots Coffee*\n\n👤 ${nombre}\n📞 ${telefono}\n\n${lineas.join('\n')}${infoEntrega}\n\n*Total: $${total.toFixed(2)}*\n\nMétodo de pago: Efectivo`
 
       localStorage.removeItem('carrito')
-
       const url = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`
       window.open(url, '_blank')
-
       router.push('/coffee/confirmacion?estado=cash')
     }
   }
@@ -96,6 +132,47 @@ export default function CheckoutPage() {
               ))}
             </div>
 
+            {/* Datos del cliente */}
+            <div style={{ border: '1px solid var(--border)', borderRadius: '4px', marginBottom: '1.5rem', overflow: 'hidden' }}>
+              <div style={{ padding: '0.9rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
+                <p style={{ fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--gray)' }}>
+                  Tus datos
+                </p>
+              </div>
+              <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
+                <p style={{ fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--gray)', marginBottom: '0.5rem' }}>
+                  Nombre completo
+                </p>
+                <input
+                  type="text"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  placeholder="Tu nombre"
+                  style={{
+                    width: '100%', background: 'var(--grain)', border: '1px solid var(--border)',
+                    borderRadius: '4px', padding: '0.75rem', color: 'var(--white)',
+                    fontSize: '0.85rem', fontFamily: 'DM Mono, monospace', boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+              <div style={{ padding: '1rem 1.25rem' }}>
+                <p style={{ fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--gray)', marginBottom: '0.5rem' }}>
+                  Teléfono
+                </p>
+                <input
+                  type="tel"
+                  value={telefono}
+                  onChange={(e) => setTelefono(e.target.value)}
+                  placeholder="+503 0000-0000"
+                  style={{
+                    width: '100%', background: 'var(--grain)', border: '1px solid var(--border)',
+                    borderRadius: '4px', padding: '0.75rem', color: 'var(--white)',
+                    fontSize: '0.85rem', fontFamily: 'DM Mono, monospace', boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+            </div>
+
             {/* Tipo de entrega */}
             <div style={{ border: '1px solid var(--border)', borderRadius: '4px', marginBottom: '1.5rem', overflow: 'hidden' }}>
               <div style={{ padding: '0.9rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
@@ -123,7 +200,6 @@ export default function CheckoutPage() {
                     width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0,
                     border: `1px solid ${tipoEntrega === opcion.id ? 'var(--accent)' : 'var(--border)'}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'border-color 0.2s',
                   }}>
                     {tipoEntrega === opcion.id && (
                       <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)' }} />
@@ -135,8 +211,6 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               ))}
-
-              {/* Campo dirección */}
               {tipoEntrega === 'delivery' && (
                 <div style={{ padding: '1rem 1.25rem', borderTop: '1px solid var(--border)' }}>
                   <p style={{ fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--gray)', marginBottom: '0.75rem' }}>
@@ -203,7 +277,6 @@ export default function CheckoutPage() {
                     width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0,
                     border: `1px solid ${metodoPago === metodo.id ? 'var(--accent)' : 'var(--border)'}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'border-color 0.2s',
                   }}>
                     {metodoPago === metodo.id && (
                       <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)' }} />
@@ -219,19 +292,17 @@ export default function CheckoutPage() {
 
             {/* Botón */}
             <button
-  className="btn"
-  onClick={handlePagar}
-  disabled={procesando}
-  style={{ width: '100%', opacity: procesando ? 0.6 : 1, transition: 'opacity 0.2s' }}
->
-  {procesando
-    ? metodoPago === 'wompi'
-      ? 'Conectando con Wompi...'
-      : 'Procesando...'
-    : metodoPago === 'cash'
-    ? `Confirmar pedido · $${total.toFixed(2)}`
-    : `Pagar con tarjeta · $${total.toFixed(2)}`}
-</button>
+              className="btn"
+              onClick={handlePagar}
+              disabled={procesando}
+              style={{ width: '100%', opacity: procesando ? 0.6 : 1, transition: 'opacity 0.2s' }}
+            >
+              {procesando
+                ? metodoPago === 'wompi' ? 'Conectando con Wompi...' : 'Procesando...'
+                : metodoPago === 'cash'
+                ? `Confirmar pedido · $${total.toFixed(2)}`
+                : `Pagar con tarjeta · $${total.toFixed(2)}`}
+            </button>
           </>
         )}
       </section>
