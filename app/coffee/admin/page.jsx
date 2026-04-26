@@ -1,309 +1,219 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
-export default function CheckoutPage() {
-  const [carrito, setCarrito] = useState([])
-  const [nombre, setNombre] = useState('')
-  const [telefono, setTelefono] = useState('')
-  const [metodoPago, setMetodoPago] = useState('cash')
-  const [tipoEntrega, setTipoEntrega] = useState('pickup')
-  const [direccion, setDireccion] = useState('')
-  const [procesando, setProcesando] = useState(false)
-  const router = useRouter()
+const PASSWORD = 'surreal2025'
+
+const ESTADOS = ['pendiente', 'confirmado', 'entregado', 'cancelado']
+
+const COLORES = {
+  pendiente:  { bg: '#2a1f00', color: '#f59e0b' },
+  confirmado: { bg: '#0a2a1f', color: '#10b981' },
+  entregado:  { bg: '#0a1a2a', color: '#3b82f6' },
+  cancelado:  { bg: '#2a0a0a', color: '#ef4444' },
+}
+
+export default function AdminPage() {
+  const [autenticado, setAutenticado] = useState(false)
+  const [password, setPassword] = useState('')
+  const [ordenes, setOrdenes] = useState([])
+  const [cargando, setCargando] = useState(false)
+  const [filtro, setFiltro] = useState('todos')
+  const [actualizando, setActualizando] = useState(null)
+
+  function login() {
+    if (password === PASSWORD) setAutenticado(true)
+    else alert('Contraseña incorrecta')
+  }
+
+  async function cargarOrdenes() {
+    setCargando(true)
+    try {
+      const res = await fetch('/api/admin-ordenes')
+      const data = await res.json()
+      setOrdenes(data.ordenes || [])
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setCargando(false)
+    }
+  }
+
+  async function cambiarEstado(id, estado) {
+    setActualizando(id)
+    try {
+      await fetch('/api/admin-ordenes', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, estado }),
+      })
+      setOrdenes(prev => prev.map(o => o.id === id ? { ...o, estado } : o))
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setActualizando(null)
+    }
+  }
 
   useEffect(() => {
-    const data = localStorage.getItem('carrito')
-    if (data) setCarrito(JSON.parse(data))
-  }, [])
+    if (autenticado) cargarOrdenes()
+  }, [autenticado])
 
-  const subtotal = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0)
-  const costoDelivery = tipoEntrega === 'delivery' ? 3.00 : 0
-  const total = subtotal + costoDelivery
+  const ordenesFiltradas = filtro === 'todos'
+    ? ordenes
+    : ordenes.filter(o => o.estado === filtro)
 
-  function validar() {
-    if (!nombre.trim()) { alert('Por favor ingresa tu nombre'); return false }
-    if (!telefono.trim() || telefono.replace(/\D/g, '').length < 8) {
-      alert('Por favor ingresa un teléfono válido (mínimo 8 dígitos)')
-      return false
-    }
-    if (tipoEntrega === 'delivery' && !direccion.trim()) {
-      alert('Por favor ingresa tu dirección de entrega')
-      return false
-    }
-    return true
-  }
-
-  async function handlePagar() {
-    if (!validar()) return
-
-    const ordenData = {
-      nombre: nombre.trim(),
-      telefono: telefono.trim(),
-      direccion: direccion.trim(),
-      tipo_entrega: tipoEntrega,
-      metodo_pago: metodoPago,
-      items: carrito,
-      subtotal,
-      costo_delivery: costoDelivery,
-      total,
-    }
-
-    if (metodoPago === 'wompi') {
-      setProcesando(true)
-      try {
-        const referencia = `surreal-${Date.now()}`
-        const response = await fetch('/api/crear-pago', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...ordenData, referencia }),
-        })
-        const data = await response.json()
-        if (data.urlEnlacePago) {
-          localStorage.removeItem('carrito')
-          window.location.assign(data.urlEnlacePago)
-        } else {
-          alert('Error al crear enlace de pago')
-        }
-      } catch (e) {
-        alert('Error de conexión')
-      } finally {
-        setProcesando(false)
-      }
-    } else {
-      setProcesando(true)
-      try {
-        await fetch('/api/crear-orden', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(ordenData),
-        })
-      } catch (e) {
-        console.error('Error guardando orden:', e)
-      }
-
-      const lineas = carrito.map(item => `• ${item.cantidad}x ${item.nombre} - $${(item.precio * item.cantidad).toFixed(2)}`)
-      const infoEntrega = tipoEntrega === 'delivery'
-        ? `\n📍 Dirección: ${direccion}\n🚚 Delivery: $3.00`
-        : '\n🏠 Pickup en tienda'
-      const mensaje = `🛒 *Nuevo pedido Surreal Roots Coffee*\n\n👤 ${nombre}\n📞 ${telefono}\n\n${lineas.join('\n')}${infoEntrega}\n\n*Total: $${total.toFixed(2)}*\n\nMétodo de pago: Efectivo`
-
-      localStorage.removeItem('carrito')
-      const url = `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`
-      window.open(url, '_blank')
-      router.push('/coffee/confirmacion?estado=cash')
-    }
-  }
+  if (!autenticado) return (
+    <main>
+      <nav className="navbar">
+        <span className="logo">Surreal Roots Coffee</span>
+        <ul><li><Link href="/coffee">← Volver</Link></li></ul>
+      </nav>
+      <section className="section" style={{ maxWidth: '360px', margin: '0 auto' }}>
+        <h2 style={{ marginBottom: '2rem' }}>Admin</h2>
+        <div style={{ border: '1px solid var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
+          <div style={{ padding: '0.9rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
+            <p style={{ fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--gray)' }}>
+              Contraseña
+            </p>
+          </div>
+          <div style={{ padding: '1rem 1.25rem' }}>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && login()}
+              placeholder="••••••••"
+              style={{
+                width: '100%', background: 'var(--grain)', border: '1px solid var(--border)',
+                borderRadius: '4px', padding: '0.75rem', color: 'var(--white)',
+                fontSize: '0.85rem', fontFamily: 'DM Mono, monospace', boxSizing: 'border-box'
+              }}
+            />
+          </div>
+        </div>
+        <button className="btn" onClick={login} style={{ width: '100%', marginTop: '1rem' }}>
+          Entrar
+        </button>
+      </section>
+    </main>
+  )
 
   return (
     <main>
       <nav className="navbar">
-        <span className="logo">Surreal Roots Coffee</span>
+        <span className="logo">Surreal Roots Coffee · Admin</span>
         <ul>
-          <li><Link href="/coffee">← Volver al menú</Link></li>
+          <li><Link href="/coffee">← Volver</Link></li>
+          <li>
+            <button
+              onClick={cargarOrdenes}
+              style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '0.85rem' }}
+            >
+              ↻ Actualizar
+            </button>
+          </li>
         </ul>
       </nav>
 
-      <section className="section" style={{ maxWidth: '480px', margin: '0 auto' }}>
-        <h2 style={{ marginBottom: '2rem' }}>Tu pedido</h2>
+      <section className="section" style={{ maxWidth: '720px', margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2rem' }}>
+          <h2>Órdenes</h2>
+          <span style={{ fontSize: '0.75rem', color: 'var(--gray)' }}>{ordenesFiltradas.length} resultado(s)</span>
+        </div>
 
-        {carrito.length === 0 ? (
-          <p style={{ color: 'var(--gray)' }}>Tu carrito está vacío.</p>
-        ) : (
-          <>
-            {/* Productos */}
-            <div style={{ border: '1px solid var(--border)', borderRadius: '4px', marginBottom: '1.5rem', overflow: 'hidden' }}>
-              {carrito.map((item, i) => (
-                <div key={item.id} style={{
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  padding: '0.9rem 1.25rem',
-                  borderBottom: i < carrito.length - 1 ? '1px solid var(--border)' : 'none',
-                }}>
-                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <span style={{ color: 'var(--gray)', fontSize: '0.8rem' }}>{item.cantidad}×</span>
-                    <span style={{ fontSize: '0.85rem' }}>{item.nombre}</span>
-                  </div>
-                  <span style={{ color: 'var(--accent)', fontSize: '0.85rem', fontFamily: 'DM Mono, monospace' }}>
-                    ${(item.precio * item.cantidad).toFixed(2)}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Datos del cliente */}
-            <div style={{ border: '1px solid var(--border)', borderRadius: '4px', marginBottom: '1.5rem', overflow: 'hidden' }}>
-              <div style={{ padding: '0.9rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
-                <p style={{ fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--gray)' }}>
-                  Tus datos
-                </p>
-              </div>
-              <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
-                <p style={{ fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--gray)', marginBottom: '0.5rem' }}>
-                  Nombre completo
-                </p>
-                <input
-                  type="text"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  placeholder="Tu nombre"
-                  style={{
-                    width: '100%', background: 'var(--grain)', border: '1px solid var(--border)',
-                    borderRadius: '4px', padding: '0.75rem', color: 'var(--white)',
-                    fontSize: '0.85rem', fontFamily: 'DM Mono, monospace', boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-              <div style={{ padding: '1rem 1.25rem' }}>
-                <p style={{ fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--gray)', marginBottom: '0.5rem' }}>
-                  Teléfono
-                </p>
-                <input
-                  type="tel"
-                  value={telefono}
-                  onChange={(e) => setTelefono(e.target.value)}
-                  placeholder="+503 0000-0000"
-                  style={{
-                    width: '100%', background: 'var(--grain)', border: '1px solid var(--border)',
-                    borderRadius: '4px', padding: '0.75rem', color: 'var(--white)',
-                    fontSize: '0.85rem', fontFamily: 'DM Mono, monospace', boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Tipo de entrega */}
-            <div style={{ border: '1px solid var(--border)', borderRadius: '4px', marginBottom: '1.5rem', overflow: 'hidden' }}>
-              <div style={{ padding: '0.9rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
-                <p style={{ fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--gray)' }}>
-                  Tipo de entrega
-                </p>
-              </div>
-              {[
-                { id: 'pickup', label: 'Recoger en tienda', sub: 'Sin costo adicional' },
-                { id: 'delivery', label: 'Delivery', sub: 'Envío a domicilio · $3.00' },
-              ].map((opcion, i, arr) => (
-                <div
-                  key={opcion.id}
-                  onClick={() => setTipoEntrega(opcion.id)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '1rem',
-                    padding: '1rem 1.25rem',
-                    borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none',
-                    cursor: 'pointer',
-                    background: tipoEntrega === opcion.id ? 'var(--grain)' : 'transparent',
-                    transition: 'background 0.2s',
-                  }}
-                >
-                  <div style={{
-                    width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0,
-                    border: `1px solid ${tipoEntrega === opcion.id ? 'var(--accent)' : 'var(--border)'}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    {tipoEntrega === opcion.id && (
-                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)' }} />
-                    )}
-                  </div>
-                  <div>
-                    <p style={{ fontSize: '0.85rem', marginBottom: '0.15rem' }}>{opcion.label}</p>
-                    <p style={{ fontSize: '0.7rem', color: 'var(--gray)' }}>{opcion.sub}</p>
-                  </div>
-                </div>
-              ))}
-              {tipoEntrega === 'delivery' && (
-                <div style={{ padding: '1rem 1.25rem', borderTop: '1px solid var(--border)' }}>
-                  <p style={{ fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--gray)', marginBottom: '0.75rem' }}>
-                    Dirección de entrega
-                  </p>
-                  <textarea
-                    value={direccion}
-                    onChange={(e) => setDireccion(e.target.value)}
-                    placeholder="Colonia, calle, casa/apartamento, referencias..."
-                    rows={3}
-                    style={{
-                      width: '100%', background: 'var(--grain)', border: '1px solid var(--border)',
-                      borderRadius: '4px', padding: '0.75rem', color: 'var(--white)',
-                      fontSize: '0.85rem', fontFamily: 'DM Mono, monospace', resize: 'none',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Total */}
-            <div style={{ border: '1px solid var(--border)', borderRadius: '4px', marginBottom: '1.5rem', overflow: 'hidden' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.9rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
-                <span style={{ color: 'var(--gray)', fontSize: '0.8rem' }}>Subtotal</span>
-                <span style={{ fontSize: '0.85rem', fontFamily: 'DM Mono, monospace' }}>${subtotal.toFixed(2)}</span>
-              </div>
-              {tipoEntrega === 'delivery' && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.9rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
-                  <span style={{ color: 'var(--gray)', fontSize: '0.8rem' }}>Delivery</span>
-                  <span style={{ fontSize: '0.85rem', fontFamily: 'DM Mono, monospace' }}>$3.00</span>
-                </div>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '0.9rem 1.25rem' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>Total</span>
-                <span style={{ fontSize: '1.4rem', fontFamily: 'DM Mono, monospace', color: 'var(--white)' }}>${total.toFixed(2)}</span>
-              </div>
-            </div>
-
-            {/* Método de pago */}
-            <div style={{ border: '1px solid var(--border)', borderRadius: '4px', marginBottom: '2rem', overflow: 'hidden' }}>
-              <div style={{ padding: '0.9rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
-                <p style={{ fontSize: '0.7rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--gray)' }}>
-                  Método de pago
-                </p>
-              </div>
-              {[
-                { id: 'cash', label: 'Efectivo', sub: 'Pago en mano' },
-                { id: 'wompi', label: 'Tarjeta', sub: 'Wompi · débito o crédito' },
-              ].map((metodo, i, arr) => (
-                <div
-                  key={metodo.id}
-                  onClick={() => setMetodoPago(metodo.id)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '1rem',
-                    padding: '1rem 1.25rem',
-                    borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none',
-                    cursor: 'pointer',
-                    background: metodoPago === metodo.id ? 'var(--grain)' : 'transparent',
-                    transition: 'background 0.2s',
-                  }}
-                >
-                  <div style={{
-                    width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0,
-                    border: `1px solid ${metodoPago === metodo.id ? 'var(--accent)' : 'var(--border)'}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    {metodoPago === metodo.id && (
-                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)' }} />
-                    )}
-                  </div>
-                  <div>
-                    <p style={{ fontSize: '0.85rem', marginBottom: '0.15rem' }}>{metodo.label}</p>
-                    <p style={{ fontSize: '0.7rem', color: 'var(--gray)' }}>{metodo.sub}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Botón */}
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+          {['todos', ...ESTADOS].map(f => (
             <button
-              className="btn"
-              onClick={handlePagar}
-              disabled={procesando}
-              style={{ width: '100%', opacity: procesando ? 0.6 : 1, transition: 'opacity 0.2s' }}
+              key={f}
+              onClick={() => setFiltro(f)}
+              style={{
+                padding: '0.4rem 0.9rem', borderRadius: '4px', fontSize: '0.75rem',
+                textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer',
+                border: '1px solid var(--border)',
+                background: filtro === f ? 'var(--accent)' : 'transparent',
+                color: filtro === f ? '#000' : 'var(--gray)',
+                transition: 'all 0.2s',
+              }}
             >
-              {procesando
-                ? metodoPago === 'wompi' ? 'Conectando con Wompi...' : 'Procesando...'
-                : metodoPago === 'cash'
-                ? `Confirmar pedido · $${total.toFixed(2)}`
-                : `Pagar con tarjeta · $${total.toFixed(2)}`}
+              {f}
             </button>
-          </>
+          ))}
+        </div>
+
+        {cargando ? (
+          <p style={{ color: 'var(--gray)' }}>Cargando órdenes...</p>
+        ) : ordenesFiltradas.length === 0 ? (
+          <p style={{ color: 'var(--gray)' }}>No hay órdenes.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {ordenesFiltradas.map(orden => (
+              <div key={orden.id} style={{ border: '1px solid var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '0.9rem 1.25rem', borderBottom: '1px solid var(--border)',
+                  background: 'var(--grain)'
+                }}>
+                  <div>
+                    <p style={{ fontSize: '0.85rem', fontWeight: 700 }}>{orden.nombre}</p>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--gray)', marginTop: '2px' }}>{orden.telefono}</p>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <p style={{ fontSize: '1rem', fontFamily: 'DM Mono, monospace', color: 'var(--accent)' }}>${orden.total.toFixed(2)}</p>
+                    <p style={{ fontSize: '0.7rem', color: 'var(--gray)', marginTop: '2px' }}>
+                      {new Date(orden.created_at).toLocaleString('es-SV', { dateStyle: 'short', timeStyle: 'short' })}
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ padding: '0.9rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
+                  {orden.items.map((item, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '4px' }}>
+                      <span style={{ color: 'var(--gray)' }}>{item.cantidad}× {item.nombre}</span>
+                      <span style={{ fontFamily: 'DM Mono, monospace' }}>${(item.precio * item.cantidad).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{
+                  padding: '0.9rem 1.25rem', borderBottom: '1px solid var(--border)',
+                  display: 'flex', gap: '1.5rem', fontSize: '0.75rem', color: 'var(--gray)'
+                }}>
+                  <span>{orden.tipo_entrega === 'delivery' ? '🚚 Delivery' : '🏠 Pickup'}</span>
+                  <span>{orden.metodo_pago === 'wompi' ? '💳 Tarjeta' : '💵 Efectivo'}</span>
+                  {orden.direccion && <span>📍 {orden.direccion}</span>}
+                </div>
+
+                <div style={{
+                  padding: '0.9rem 1.25rem',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem'
+                }}>
+                  <span style={{
+                    fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em',
+                    padding: '0.3rem 0.75rem', borderRadius: '4px',
+                    background: COLORES[orden.estado]?.bg,
+                    color: COLORES[orden.estado]?.color,
+                  }}>
+                    {orden.estado}
+                  </span>
+                  <select
+                    value={orden.estado}
+                    disabled={actualizando === orden.id}
+                    onChange={e => cambiarEstado(orden.id, e.target.value)}
+                    style={{
+                      background: 'var(--grain)', border: '1px solid var(--border)',
+                      borderRadius: '4px', padding: '0.4rem 0.75rem',
+                      color: 'var(--white)', fontSize: '0.75rem',
+                      fontFamily: 'DM Mono, monospace', cursor: 'pointer'
+                    }}
+                  >
+                    {ESTADOS.map(e => <option key={e} value={e}>{e}</option>)}
+                  </select>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </section>
 
